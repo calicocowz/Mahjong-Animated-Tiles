@@ -1,0 +1,25 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lines Tiles: the smallest example</title>
+</head>
+<body style="margin:0;padding:16px;background:#0b0c0e;color:#f4f4f4;font-family:system-ui,sans-serif">
+
+  <p>One tile:</p>
+  <lines-tile set="flair" tile="0p"></lines-tile>
+
+  <p>A hand, with the drawn tile set apart by a space:</p>
+  <lines-hand set="sheet" tiles="123m406p789s1122z 7s" size="40"></lines-hand>
+
+  <p>Built in JavaScript, moving only under the pointer:</p>
+  <div id="here"></div>
+
+  <script src="../lines-tiles.js"></script>
+  <script>
+    document.getElementById("here").innerHTML =
+      LinesTiles.hand("flair", "19m19p19s1234567z", { size: 32, motion: "hover" });
+  </script>
+</body>
+</html>

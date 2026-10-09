@@ -1,0 +1,436 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Lines Tiles</title>
+<meta name="description" content="Animated mahjong tiles in the style of Lines: five sets, Road, Sheet, Garden, Flair and Block, drawn as live SVG by one small script.">
+<style>
+  :root {
+    --ground: #0b0c0e;
+    --panel: #16181b;
+    --rule: #31353a;
+    --mute: #8c8c8c;
+    --soft: #d6d6d6;
+    --ink: #f4f4f4;
+    --dark: #16181b;
+    --pink: #ff5fd2;
+    --blue: #6cb2ff;
+    --bad: #ff7a7a;
+    color-scheme: dark;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    background: var(--ground);
+    color: var(--ink);
+    font: 14px/1.55 ui-monospace, "Cascadia Mono", Consolas, Menlo, monospace;
+  }
+  .wrap { max-width: 1040px; margin: 0 auto; padding: 28px 16px 72px; }
+  h1 { font-size: clamp(30px, 7vw, 56px); line-height: 1; letter-spacing: .06em; margin: 0; font-weight: 800; }
+  h2 { margin: 0; font-size: 22px; letter-spacing: .04em; }
+  p { margin: 0; max-width: 72ch; color: var(--soft); }
+  a { color: var(--blue); }
+  .lede { margin-top: 12px; }
+  .road { position: relative; height: 22px; background: var(--ink); margin: 22px 0 26px; overflow: hidden; }
+  .road .car {
+    position: absolute; top: 5px; left: -20px; width: 12px; height: 12px; background: var(--ground);
+    box-shadow: 0 0 0 2px var(--ink), 0 0 0 3.5px #585858;
+    animation: drive 6s linear infinite;
+  }
+  @keyframes drive { from { left: -20px; } to { left: 100%; } }
+
+  .tag {
+    display: inline-block; background: var(--ink); color: var(--dark); border: 2px solid var(--dark);
+    text-transform: uppercase; letter-spacing: .1em; font-weight: 700; font-size: 12px; padding: 2px 8px;
+  }
+  .bar { display: flex; flex-wrap: wrap; gap: 18px 28px; align-items: center; margin: 22px 0 8px; }
+  .ctl { display: flex; align-items: center; gap: 10px; flex-wrap: wrap; }
+  .ctl > span, .lbl { text-transform: uppercase; letter-spacing: .1em; font-size: 12px; color: var(--mute); }
+  .seg { display: inline-flex; border: 2px solid var(--ink); }
+  .seg button {
+    font: inherit; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; cursor: pointer;
+    background: transparent; color: var(--ink); border: 0; padding: 5px 11px;
+  }
+  .seg button + button { border-left: 2px solid var(--ink); }
+  .seg button[aria-pressed="true"] { background: var(--ink); color: var(--dark); }
+  button:focus-visible, input:focus-visible, a:focus-visible { outline: 2px dashed var(--pink); outline-offset: 3px; }
+  input[type=range] { accent-color: var(--ink); width: 140px; }
+  .val { min-width: 4ch; color: var(--soft); }
+
+  section { margin-top: 44px; }
+  .head { display: flex; align-items: baseline; gap: 14px; flex-wrap: wrap; margin-bottom: 10px; }
+  .box { background: var(--panel); border: 1px solid var(--rule); padding: 18px 16px 20px; margin-top: 14px; }
+  .box + .box { margin-top: 18px; }
+  .tiles { display: flex; flex-wrap: wrap; gap: 4px; align-items: flex-end; }
+  .rows { display: grid; gap: 14px; }
+  .row { display: grid; grid-template-columns: 64px 1fr; align-items: center; gap: 12px; }
+  .row > b { text-transform: uppercase; letter-spacing: .08em; font-size: 12px; }
+  .sheet { display: grid; gap: 8px; margin-top: 16px; }
+  .moves { color: var(--mute); margin-top: 6px; }
+
+  .river { display: grid; grid-template-columns: repeat(6, max-content); gap: 3px; min-height: 48px; margin: 6px 0 22px; }
+  .hand { display: flex; align-items: flex-end; gap: 3px; flex-wrap: nowrap; }
+  .hand .drawn { margin-left: 12px; }
+  .tb { padding: 0; border: 0; background: none; cursor: pointer; line-height: 0; transition: transform .12s ease-out; }
+  .tb:hover { transform: translateY(-5px); }
+  .tb.new { animation: drop .35s ease-out; }
+  .river .new { animation: land .3s ease-out; }
+  @keyframes drop { from { transform: translateY(-14px); opacity: 0; } to { transform: none; opacity: 1; } }
+  @keyframes land { from { transform: scale(1.25); opacity: 0; } to { transform: none; opacity: 1; } }
+  .status { margin-top: 12px; color: var(--mute); min-height: 1.55em; }
+
+  .field { display: flex; gap: 10px; flex-wrap: wrap; align-items: center; margin-top: 4px; }
+  .field input[type=text] {
+    font: inherit; font-size: 16px; background: var(--ink); color: var(--dark); border: 2px solid var(--ink);
+    padding: 6px 10px; width: min(100%, 420px);
+  }
+  .err { color: var(--bad); min-height: 1.55em; margin-top: 8px; }
+  lines-hand { display: inline-block; max-width: 100%; }
+
+  pre {
+    margin: 12px 0 0; background: var(--ink); color: var(--dark); border: 2px solid var(--dark);
+    padding: 14px; overflow-x: auto; font: 13px/1.6 ui-monospace, "Cascadia Mono", Consolas, monospace;
+  }
+  .copy { margin-top: 10px; }
+  .copy button, .btn {
+    font: inherit; font-size: 12px; text-transform: uppercase; letter-spacing: .08em; cursor: pointer;
+    background: var(--ink); color: var(--dark); border: 2px solid var(--ink); padding: 5px 12px;
+  }
+  .copy span { margin-left: 10px; color: var(--mute); }
+  ul { margin: 10px 0 0; padding-left: 20px; color: var(--soft); max-width: 78ch; }
+  li + li { margin-top: 6px; }
+  code { color: var(--ink); }
+  pre code { color: inherit; }
+  .idle .lt, .idle .lt * { animation-play-state: paused !important; }
+  @media (max-width: 560px) {
+    .row { grid-template-columns: 1fr; gap: 4px; }
+  }
+  @media (prefers-reduced-motion: reduce) {
+    .road .car, .tb.new, .river .new { animation: none; }
+    .tb { transition: none; }
+  }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>LINES TILES</h1>
+  <div class="road" aria-hidden="true"><div class="car"></div></div>
+  <p class="lede">Animated mahjong tiles in the style of Lines, in five sets. <b>Road</b> is the race on a tile; <b>Sheet</b> is the Lines editor in ink; <b>Garden</b> is a flower bed for every number; <b>Flair</b> is neon on a dark tile; <b>Block</b> is the 3D view. Every tile is live SVG drawn by one small script: no images, no dependencies, and the motion is plain CSS.</p>
+
+  <div class="bar">
+    <div class="ctl"><span>Motion</span>
+      <div class="seg" id="motion">
+        <button type="button" data-v="on">On</button><button type="button" data-v="hover">Hover</button><button type="button" data-v="off">Off</button>
+      </div>
+    </div>
+    <div class="ctl"><span>Sheet size</span>
+      <input type="range" id="size" min="24" max="72" step="2" value="44" aria-label="Tile size on the full sets">
+      <span class="val" id="sizeval">44px</span>
+    </div>
+  </div>
+
+  <section>
+    <div class="head"><span class="tag">Write a hand</span></div>
+    <p>Type a hand in the usual notation: digits, then their suit (<code>m</code> characters, <code>p</code> dots, <code>s</code> bamboo, <code>z</code> honours). <code>0</code> is a red five; a space leaves a gap.</p>
+    <div class="box">
+      <div class="field">
+        <label class="lbl" for="notation">Hand</label>
+        <input type="text" id="notation" value="234m406p789s1122z 7s" spellcheck="false" autocomplete="off" aria-describedby="handerr">
+      </div>
+      <div class="err" id="handerr" aria-live="polite"></div>
+      <div class="rows" id="handrows"></div>
+<pre><code id="handcode"></code></pre>
+      <div class="copy"><button type="button" id="copyhand">Copy</button><span id="copyhandmsg" aria-live="polite"></span></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="head"><span class="tag">At the table</span>
+      <div class="seg" id="tableset"></div>
+    </div>
+    <p>Click a tile to discard it. The river fills the way it does in a real hand.</p>
+    <div class="box">
+      <div class="river" id="river" aria-label="Your discards"></div>
+      <div class="hand" id="hand"></div>
+      <div class="status" id="status" aria-live="polite"></div>
+      <div class="copy"><button type="button" id="deal">Deal again</button></div>
+    </div>
+  </section>
+
+  <section>
+    <div class="head"><span class="tag">The full sets</span></div>
+    <div id="sets"></div>
+  </section>
+
+  <section>
+    <div class="head"><span class="tag">Use it on a website</span></div>
+    <p>Put <code>lines-tiles.js</code> next to your page (or load it from a CDN, below), then write a tag per tile or per hand.</p>
+<pre id="snippet"><code>&lt;script src="lines-tiles.js"&gt;&lt;/script&gt;
+
+&lt;lines-tile set="flair" tile="5p"&gt;&lt;/lines-tile&gt;
+&lt;lines-hand set="sheet" tiles="123m 406p 789s 11z"&gt;&lt;/lines-hand&gt;
+
+&lt;script&gt;
+  // or build the markup yourself
+  el.innerHTML = LinesTiles.svg("flair", "7z", { size: 48 });
+  el.innerHTML = LinesTiles.hand("sheet", "123m406p", { size: 36 });
+&lt;/script&gt;</code></pre>
+    <div class="copy"><button type="button" id="copybtn">Copy</button><span id="copymsg" aria-live="polite"></span></div>
+    <ul>
+      <li><code>set</code>: <code>road</code>, <code>sheet</code>, <code>garden</code>, <code>flair</code> or <code>block</code>.</li>
+      <li><code>tile</code>: <code>1m</code> to <code>9m</code>, <code>1p</code> to <code>9p</code>, <code>1s</code> to <code>9s</code>, red fives <code>0m</code> <code>0p</code> <code>0s</code>, honours <code>1z</code> to <code>7z</code> (East, South, West, North, White, Green, Red), and <code>back</code>.</li>
+      <li><code>size</code> is the tile width in pixels (default 48). <code>motion</code> is <code>on</code>, <code>hover</code> or <code>off</code>; a visitor who asks their system for reduced motion always gets still tiles.</li>
+      <li>Screen readers hear each tile's name ("red 5 pin", "East"), and a whole hand as one list.</li>
+      <li>Full details are in the README.</li>
+    </ul>
+  </section>
+
+  <section>
+    <div class="head"><span class="tag">Copyright</span></div>
+    <ul>
+      <li>The tile system itself (three suits, winds, dragons and the traditional arrangement of the dots and sticks) is centuries old and in the public domain.</li>
+      <li>Every drawing here is original code written for this set. Nothing is traced, sampled or copied from any commercial tile art, and the set uses no images at all. The look comes from Lines.</li>
+      <li>Fonts: Dela Gothic One, Zen Kurenaido, DotGothic16 and M PLUS 1p, loaded from Google Fonts, all under the SIL Open Font License 1.1.</li>
+    </ul>
+  </section>
+</div>
+
+<script src="lines-tiles.js"></script>
+<script>
+(function () {
+  "use strict";
+  var L = window.LinesTiles;
+  var SETS = [
+    { id: "road", name: "Road", idea: "The race, on a tile. Soft white roads on a dark tile with room to breathe, and every coin is the car: a dark square in a light disc.",
+      moves: "Nothing on the marks moves; one dim light laps each tile's rim, like a car on a track. The 1 sou is an S-bend with a car driving to the finish line, and the White dragon's centre pulses." },
+    { id: "sheet", name: "Sheet", idea: "The Lines editor, in ink. White paper, black ink, blue and red pencil.",
+      moves: "The lines boil like hand-drawn animation. The White dragon is the editor's pink selection box with marching ants; the 1 sou is a pencil drawing a line." },
+    { id: "garden", name: "Garden", idea: "A flower bed for every number: sunflower, rose, trillium, poppy, cherry blossom, lily, starflower, cosmos and aster. Where nature allows, the petals count the tile (3, 4, 5, 6, 7, 8). The bamboo are bright jointed stalks with leaves; the 1 sou is a seedling.",
+      moves: "The flowers nod in the breeze and the sunflower slowly turns; the stalks sway and their leaves flutter, each out of step with the others. A light runs round the pixel White dragon." },
+    { id: "flair", name: "Flair", idea: "Light at speed, kept easy on the eyes. Crisp neon marks over a soft, steady glow, on a dark tile.",
+      moves: "A slow sheen crosses each tile now and then, at its own moment, so a row never flashes at once. The 1 sou is a dash chevron easing forward." },
+    { id: "block", name: "Block", idea: "The 3D view. Every mark is a softly extruded block, as in the 3D editor, with room to breathe on a light tile.",
+      moves: "The shallow extrusion drifts slowly as if the camera were moving, and the 1 sou is a stacked tower that bobs." }
+  ];
+  var ROWS = [
+    ["1m", "2m", "3m", "4m", "5m", "6m", "7m", "8m", "9m", "0m"],
+    ["1p", "2p", "3p", "4p", "5p", "6p", "7p", "8p", "9p", "0p"],
+    ["1s", "2s", "3s", "4s", "5s", "6s", "7s", "8s", "9s", "0s"],
+    ["1z", "2z", "3z", "4z", "5z", "6z", "7z", "back"]
+  ];
+  var state = { motion: "on", size: 44, tableSet: "flair" };
+  try {
+    var saved = JSON.parse(localStorage.getItem("lines-tiles-demo-2") || "{}");
+    if (["on", "hover", "off"].indexOf(saved.motion) >= 0) state.motion = saved.motion;
+    if (saved.size >= 24 && saved.size <= 72) state.size = saved.size;
+    if (L.sets.indexOf(saved.tableSet) >= 0) state.tableSet = saved.tableSet;
+  } catch (e) { /* storage may be blocked; the defaults are fine */ }
+  function save() { try { localStorage.setItem("lines-tiles-demo-2", JSON.stringify(state)); } catch (e) {} }
+  function tile(set, code, size) { return L.svg(set, code, { size: size, motion: state.motion }); }
+  function $(id) { return document.getElementById(id); }
+  function pressed(seg, v) {
+    seg.querySelectorAll("button").forEach(function (b) { b.setAttribute("aria-pressed", String(b.dataset.v === v)); });
+  }
+
+  // ---- write a hand (uses the <lines-hand> element) ----
+  var handrows = $("handrows");
+  SETS.forEach(function (s) {
+    var row = document.createElement("div");
+    row.className = "row";
+    var b = document.createElement("b");
+    b.textContent = s.name;
+    var el = document.createElement("lines-hand");
+    el.setAttribute("set", s.id);
+    row.appendChild(b);
+    row.appendChild(el);
+    handrows.appendChild(row);
+  });
+  function handSizeFor(count) {
+    var w = handrows.clientWidth || 900, narrow = w < 520, avail = narrow ? w : w - 76;
+    // never below 24 px: on a phone a long hand wraps onto a second line instead
+    return Math.max(24, Math.min(44, Math.floor(avail / Math.max(1, count + 0.6) - 3)));
+  }
+  function drawHand() {
+    var text = $("notation").value, codes;
+    try {
+      codes = L.parseHand(text);
+      $("handerr").textContent = codes.length ? "" : "Type some tiles, for example 123m456p.";
+    } catch (e) {
+      $("handerr").textContent = e.message.replace(/^LinesTiles: /, "");
+      return;                                   // keep showing the last hand that parsed
+    }
+    var size = handSizeFor(codes.length);
+    handrows.querySelectorAll("lines-hand").forEach(function (el) {
+      el.setAttribute("tiles", text);
+      el.setAttribute("size", String(size));
+      el.setAttribute("motion", state.motion);
+    });
+    // safe to paste as HTML: text only reaches here after it parsed (digits, m p s z, spaces)
+    $("handcode").textContent = SETS.map(function (s) {
+      return '<lines-hand set="' + s.id + '" tiles="' + text.trim().replace(/\s+/g, " ") + '"></lines-hand>';
+    }).join("\n");
+  }
+  $("notation").addEventListener("input", drawHand);
+
+  // ---- the table ----
+  var wall = [], hand = [], drawn = null, river = [], fresh = null;
+  function key(code) {
+    var n = +code[0], s = "mpsz".indexOf(code[1]);
+    return s * 10 + (n === 0 ? 5.5 : n);
+  }
+  function deal() {
+    wall = [];
+    ["m", "p", "s"].forEach(function (s) {
+      for (var n = 1; n <= 9; n++) for (var c = 0; c < 4; c++) wall.push((n === 5 && c === 0 ? 0 : n) + s);
+    });
+    for (var z = 1; z <= 7; z++) for (var c = 0; c < 4; c++) wall.push(z + "z");
+    for (var i = wall.length - 1; i > 0; i--) {
+      var j = Math.floor(Math.random() * (i + 1)), t = wall[i];
+      wall[i] = wall[j];
+      wall[j] = t;
+    }
+    hand = wall.splice(0, 13).sort(function (a, b) { return key(a) - key(b); });
+    drawn = wall.shift();
+    river = [];
+    fresh = "drawn";
+    drawTable();
+  }
+  function discard(idx) {
+    if (!drawn) return;                      // the hand is over: no tile to take in
+    var out;
+    if (idx === -1) { out = drawn; } else { out = hand[idx]; hand.splice(idx, 1); hand.push(drawn); }
+    hand.sort(function (a, b) { return key(a) - key(b); });
+    river.push(out);
+    drawn = river.length < 18 ? wall.shift() : null;
+    fresh = drawn ? "drawn" : null;
+    drawTable(true);
+    var focus = $("hand").querySelector(".drawn") || $("deal");
+    if (focus) focus.focus({ preventScroll: true });
+  }
+  function tableSize() {
+    var w = ($("hand").parentNode.clientWidth || 900) - 32;
+    return Math.max(20, Math.min(48, Math.floor((w - 13 * 3 - 12) / 14)));
+  }
+  function drawTable(justDiscarded) {
+    var set = state.tableSet, size = tableSize(), rsize = Math.max(18, Math.round(size * 0.66));
+    var h = "";
+    hand.forEach(function (code, i) {
+      h += '<button type="button" class="tb" data-i="' + i + '" aria-label="Discard ' + L.label(code) + '">' + tile(set, code, size) + "</button>";
+    });
+    if (drawn) {
+      h += '<button type="button" class="tb drawn' + (fresh ? " new" : "") + '" data-i="-1" aria-label="Discard the drawn tile, ' +
+        L.label(drawn) + '">' + tile(set, drawn, size) + "</button>";
+    }
+    $("hand").innerHTML = h;
+    $("river").innerHTML = river.map(function (code, i) {
+      return '<span class="' + (justDiscarded && i === river.length - 1 ? "new" : "") + '">' + tile(set, code, rsize) + "</span>";
+    }).join("");
+    $("status").textContent = drawn ? wall.length + " tiles left in the wall" : "That's 18 discards: the hand is over. Deal again.";
+    fresh = null;
+  }
+  $("hand").addEventListener("click", function (e) {
+    var b = e.target.closest(".tb");
+    if (b) discard(+b.dataset.i);
+  });
+  $("deal").addEventListener("click", deal);
+  var tableSeg = $("tableset");
+  SETS.forEach(function (s) {
+    var b = document.createElement("button");
+    b.type = "button";
+    b.dataset.v = s.id;
+    b.textContent = s.name;
+    tableSeg.appendChild(b);
+  });
+  tableSeg.addEventListener("click", function (e) {
+    var b = e.target.closest("button");
+    if (!b) return;
+    state.tableSet = b.dataset.v;
+    pressed(tableSeg, state.tableSet);
+    save();
+    drawTable();
+  });
+
+  // ---- the full sets ----
+  var setsEl = $("sets");
+  SETS.forEach(function (s) {
+    var box = document.createElement("article");
+    box.className = "box";
+    box.dataset.set = s.id;
+    box.innerHTML = '<div class="head"><h2></h2></div><p></p><p class="moves"></p><div class="sheet"></div>';
+    box.querySelector("h2").textContent = s.name.toUpperCase();
+    box.querySelectorAll("p")[0].textContent = s.idea;
+    box.querySelectorAll("p")[1].textContent = s.moves;
+    setsEl.appendChild(box);
+  });
+  function drawSets() {
+    setsEl.querySelectorAll(".box").forEach(function (box) {
+      var set = box.dataset.set, avail = box.querySelector(".sheet").clientWidth;
+      var size = avail > 0 ? Math.max(18, Math.min(state.size, Math.floor((avail - 9 * 4) / 10))) : state.size;
+      box.querySelector(".sheet").innerHTML = ROWS.map(function (row) {
+        return '<div class="tiles">' + row.map(function (code) { return tile(set, code, size); }).join("") + "</div>";
+      }).join("");
+    });
+    $("sizeval").textContent = state.size + "px";
+  }
+
+  // ---- controls ----
+  var motionSeg = $("motion");
+  motionSeg.addEventListener("click", function (e) {
+    var b = e.target.closest("button");
+    if (!b) return;
+    state.motion = b.dataset.v;
+    pressed(motionSeg, state.motion);
+    save();
+    redrawAll();
+  });
+  $("size").value = String(state.size);
+  $("size").addEventListener("input", function () {
+    state.size = +this.value;
+    save();
+    drawSets();
+  });
+  function copier(btn, source, msg) {
+    $(btn).addEventListener("click", function () {
+      var text = $(source).textContent;
+      function selectIt() {
+        var r = document.createRange();
+        r.selectNodeContents($(source));
+        var s = window.getSelection();
+        s.removeAllRanges();
+        s.addRange(r);
+        $(msg).textContent = "Selected: press Ctrl+C to copy";
+      }
+      try {
+        navigator.clipboard.writeText(text).then(function () { $(msg).textContent = "Copied"; }, selectIt);
+      } catch (e) { selectIt(); }
+    });
+  }
+  copier("copybtn", "snippet", "copymsg");
+  copier("copyhand", "handcode", "copyhandmsg");
+
+  function redrawAll() { drawHand(); drawSets(); drawTable(); }
+  var resizeTimer = null, lastW = window.innerWidth;
+  window.addEventListener("resize", function () {
+    if (window.innerWidth === lastW) return;
+    lastW = window.innerWidth;
+    clearTimeout(resizeTimer);
+    resizeTimer = setTimeout(redrawAll, 120);
+  });
+  pressed(motionSeg, state.motion);
+  pressed(tableSeg, state.tableSet);
+  drawHand();
+  drawSets();
+  deal();
+
+  // pause whatever is scrolled out of view
+  if ("IntersectionObserver" in window) {
+    var io = new IntersectionObserver(function (entries) {
+      entries.forEach(function (en) { en.target.classList.toggle("idle", !en.isIntersecting); });
+    }, { rootMargin: "120px 0px" });
+    document.querySelectorAll(".box").forEach(function (el) { io.observe(el); });
+  }
+})();
+</script>
+</body>
+</html>
