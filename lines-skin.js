@@ -1,4 +1,4 @@
-/*! lines-tiles.js 1.7.2 -- animated mahjong tiles in the style of Lines. No dependencies.
+/*! lines-tiles.js 1.7.3 -- animated mahjong tiles in the style of Lines. No dependencies.
  *
  *   <script src="lines-tiles.js"></script>
  *   <lines-tile set="flair" tile="5p"></lines-tile>                    one tile
@@ -33,7 +33,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.7.2";
+  var VERSION = "1.7.3";
   var KANJI = ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u4e03", "\u516b", "\u4e5d"];
   var HON = ["\u6771", "\u5357", "\u897f", "\u5317", "\u767d", "\u767c", "\u4e2d"];
   var MAN = "\u842c";
@@ -413,7 +413,7 @@
             { cls: "lt-flutter", st: "transform-origin:0% 100%;" + delay(i, 2.6) });
         }
         s = G(s, { cls: "lt-sway", st: delay(i, 3.6) });
-        return placeStick(s, b);
+        return placeStick(s, t.n === 8 ? b.slice(0, 5).concat(1.1) : b);   // 8 sou: slimmer x1.1
       }).join("");
     },
     m: function (t, c) {
