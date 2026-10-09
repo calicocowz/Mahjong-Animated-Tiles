@@ -1,4 +1,4 @@
-/*! lines-tiles.js 1.6.0 -- animated mahjong tiles in the style of Lines. No dependencies.
+/*! lines-tiles.js 1.7.0 -- animated mahjong tiles in the style of Lines. No dependencies.
  *
  *   <script src="lines-tiles.js"></script>
  *   <lines-tile set="flair" tile="5p"></lines-tile>                    one tile
@@ -33,7 +33,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.6.0";
+  var VERSION = "1.7.0";
   var KANJI = ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u4e03", "\u516b", "\u4e5d"];
   var HON = ["\u6771", "\u5357", "\u897f", "\u5317", "\u767d", "\u767c", "\u4e2d"];
   var MAN = "\u842c";
@@ -75,10 +75,13 @@
     7: [[30, 13, 18, "R", 0]].concat([16, 30, 44].reduce(function (a, x) {
       return a.concat([[x, 40, 18, "G", 0], [x, 66, 18, "B", 0]]);
     }, [])),
-    // 8 sou as on the classic tile: straight outer sticks; between them the inner pair leans right out to
-    // the outer sticks, peaking at the top centre above (/\) and meeting at the bottom centre below (\/)
-    8: [[11, 22, 24, "G", 0], [22.3, 21, 25, "G", 37.6], [37.7, 21, 25, "G", -37.6], [49, 22, 24, "G", 0],
-        [11, 58, 24, "G", 0], [22.3, 59, 25, "G", -37.6], [37.7, 59, 25, "G", 37.6], [49, 58, 24, "G", 0]],
+    // 8 sou as on the classic tile, drawn fatter (x1.3): straight outer posts; between them the inner pair
+    // runs from a clean point at the centre out to rest against the posts, a peak above and a V below.
+    // Given by end points (lower end first), so the tips meet and the feet touch instead of crossing.
+    8: [stickAt(9.5, 34, 9.5, 10, "G", 1.3), stickAt(16.8, 31.5, 26.9, 13, "G", 1.3),
+        stickAt(43.2, 31.5, 33.1, 13, "G", 1.3), stickAt(50.5, 34, 50.5, 10, "G", 1.3),
+        stickAt(9.5, 70, 9.5, 46, "G", 1.3), stickAt(26.9, 67, 16.8, 48.5, "G", 1.3),
+        stickAt(33.1, 67, 43.2, 48.5, "G", 1.3), stickAt(50.5, 70, 50.5, 46, "G", 1.3)],
     9: [14, 40, 66].reduce(function (a, y) {
       return a.concat([[15, y, 20, "G", 0], [30, y, 20, "R", 0], [45, y, 20, "B", 0]]);
     }, [])
@@ -120,6 +123,19 @@
   function delay(i, period) { return "animation-delay:-" + n2((i * 0.37) % (period || 2)) + "s"; }
   function roleColour(c, role, red) { return red ? c.red : c.roles[role]; }
   function E(cx, cy, rx, ry, o) { o = o || {}; return "<ellipse" + at(merge({ cx: cx, cy: cy, rx: rx, ry: ry }, common(o))) + "/>"; }
+  // A stick from its lower end (x1, y1) to its upper end (x2, y2), as [x, y, length, role, turn, width].
+  function stickAt(x1, y1, x2, y2, role, width) {
+    var dx = x2 - x1, dy = y2 - y1;
+    return [n2((x1 + x2) / 2), n2((y1 + y2) / 2), n2(Math.sqrt(dx * dx + dy * dy)), role,
+      n2(Math.atan2(dx, -dy) * 180 / Math.PI), width || 1];
+  }
+  // Place a stick drawn upright at (b[0], b[1]): widen it by b[5], then turn it by `turn` (default b[4]).
+  function placeStick(inner, b, turn) {
+    var x = b[0], y = b[1], r = turn === undefined ? b[4] : turn, k = b[5] || 1, tf = [];
+    if (r) tf.push("rotate(" + n2(r) + " " + x + " " + y + ")");
+    if (k !== 1) tf.push("translate(" + x + " " + y + ") scale(" + k + " 1) translate(" + (-x) + " " + (-y) + ")");
+    return tf.length ? G(inner, { tf: tf.join(" ") }) : inner;
+  }
 
   // ---- the sparrow: every set's 1 sou, one simple drawing that each set dresses ----------
   var SPARROW = {
@@ -198,7 +214,7 @@
         var col = roleColour(c, b[3], t.red), x = b[0], y = b[1], h = b[2];
         var bar = R(x - 3, y - h / 2, 6, h, { fill: col }) +
           P("M " + x + " " + n2(y - h / 2 + 2.5) + " V " + n2(y + h / 2 - 2.5), { stroke: c.face, sw: 0.8, op: 0.6 });
-        return b[4] ? G(bar, { tf: "rotate(" + b[4] + " " + x + " " + y + ")" }) : bar;
+        return placeStick(bar, b);
       }).join("");
     },
     m: function (t, c) {
@@ -255,7 +271,7 @@
         var inner = R(x - 3.6, y - h / 2, 7.2, h, { rx: 1.6, stroke: col, sw: 1.4 });
         for (var k = -1; k <= 1; k++) inner += R(x - 2.2, y + k * h / 4 - 0.4, 4.4, 0.8, { fill: col });
         inner = G(inner, { cls: "lt-boil", st: delay(i, 0.66) });
-        return b[4] ? G(inner, { tf: "rotate(" + b[4] + " " + x + " " + y + ")" }) : inner;
+        return placeStick(inner, b);
       }).join("");
     },
     m: function (t, c) {
@@ -391,12 +407,12 @@
           var jy = top + h * k / (joints + 1);
           s += R(x - 3.2, jy - 0.75, 6.4, 1.5, { rx: 0.75, fill: col[1] });
         }
-        if (i % 2 === 0) {               // a leaf at the upper joint, fluttering from its base
+        if (i % 2 === 0 && t.n !== 8) {  // a leaf at the upper joint, fluttering from its base (8 sou stays clean)
           s += G(P(leafD(x + 2.4, top + h / (joints + 1), 8.5, 36, i % 4 ? -30 : -14), { fill: col[3] }),
             { cls: "lt-flutter", st: "transform-origin:0% 100%;" + delay(i, 2.6) });
         }
         s = G(s, { cls: "lt-sway", st: delay(i, 3.6) });
-        return b[4] ? G(s, { tf: "rotate(" + b[4] + " " + x + " " + y + ")" }) : s;
+        return placeStick(s, b);
       }).join("");
     },
     m: function (t, c) {
@@ -465,8 +481,8 @@
       return SOU[t.n].map(function (b) {
         var col = roleColour(c, b[3], t.red), x = b[0], y = b[1], h = b[2];
         var lean = t.n === 8 ? b[4] : b[4] || 8;   // a slight forward lean; 8 sou keeps its real shape
-        return G(R(x - 4.2, y - h / 2, 8.4, h, { rx: 4.2, fill: col, op: 0.16 }) +
-          R(x - 2.3, y - h / 2, 4.6, h, { rx: 2.3, fill: col }), { tf: "rotate(" + lean + " " + x + " " + y + ")" });
+        return placeStick(R(x - 4.2, y - h / 2, 8.4, h, { rx: 4.2, fill: col, op: 0.16 }) +
+          R(x - 2.3, y - h / 2, 4.6, h, { rx: 2.3, fill: col }), b, lean);
       }).join("");
     },
     m: function (t, c) {
@@ -524,10 +540,9 @@
       var sides = "", tops = "";
       SOU[t.n].forEach(function (b) {
         var col = roleColour(c, b[3], t.red), x = b[0], y = b[1], h = b[2];
-        var rot = b[4] ? "rotate(" + b[4] + " " + x + " " + y + ")" : null;
-        sides += G(R(x - 3.1 + d, y - h / 2 + d, 6.2, h, { rx: 1, fill: c.side }), { tf: rot });
-        tops += G(R(x - 3.1, y - h / 2, 6.2, h, { rx: 1, fill: col }) +
-          R(x - 1, y - h / 2 + 2, 2, h - 4, { rx: 1, fill: "#ffffff", op: 0.3 }), { tf: rot });
+        sides += placeStick(R(x - 3.1 + d, y - h / 2 + d, 6.2, h, { rx: 1, fill: c.side }), b);
+        tops += placeStick(R(x - 3.1, y - h / 2, 6.2, h, { rx: 1, fill: col }) +
+          R(x - 1, y - h / 2 + 2, 2, h - 4, { rx: 1, fill: "#ffffff", op: 0.3 }), b);
       });
       return G(sides, { cls: "lt-breath" }) + tops;
     },

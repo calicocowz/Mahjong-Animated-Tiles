@@ -21,7 +21,7 @@ Open `index.html` for the live demo: every tile, a playable hand, and a box wher
 `lines-skin.js` re-skins a page that already draws mahjong tiles, without changing any of its code. Add this line to each page that shows tiles (the review page, and the live-play page if it has one), anywhere in the HTML:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/calicocowz/Mahjong-Animated-Tiles@v1.6.0/lines-skin.js" data-set="flair"></script>
+<script src="https://cdn.jsdelivr.net/gh/calicocowz/Mahjong-Animated-Tiles@v1.7.0/lines-skin.js" data-set="flair"></script>
 ```
 
 That's the whole install. How it works and what to know:
@@ -77,10 +77,10 @@ Changing an attribute later redraws the element.
 **2. Load it from a CDN, straight from this GitHub repo.** [jsDelivr](https://www.jsdelivr.com/) serves files from public GitHub repos, no upload needed:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/calicocowz/Mahjong-Animated-Tiles@v1.6.0/lines-tiles.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/calicocowz/Mahjong-Animated-Tiles@v1.7.0/lines-tiles.js"></script>
 ```
 
-`@v1.6.0` pins this version (the git tag `v1.6.0`), so a later change to the repo can never change a site that uses it. To move to a newer version, change the number.
+`@v1.7.0` pins this version (the git tag `v1.7.0`), so a later change to the repo can never change a site that uses it. To move to a newer version, change the number.
 
 **3. Use the demo as a page.** In the repo's *Settings → Pages*, choose *Deploy from a branch*, then `main` and `/ (root)`. The pages then go live at `https://calicocowz.github.io/Mahjong-Animated-Tiles/` (the demo) and `https://calicocowz.github.io/Mahjong-Animated-Tiles/showcase.html` (the showcase).
 
@@ -119,7 +119,7 @@ LinesTiles.parseHand("12m 3p")   // ["1m", "2m", null, "3p"]   (null = gap)
 LinesTiles.label("0p")           // "red 5 pin"
 LinesTiles.sets                  // ["road", "sheet", "garden", "flair", "block"]
 LinesTiles.tiles                 // every tile code, in order
-LinesTiles.version               // "1.6.0"
+LinesTiles.version               // "1.7.0"
 ```
 
 `svg`, `hand` and `parseHand` throw an `Error` on an unknown set, tile or notation.
