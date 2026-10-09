@@ -1,4 +1,4 @@
-/*! lines-tiles.js 1.5.0 -- animated mahjong tiles in the style of Lines. No dependencies.
+/*! lines-tiles.js 1.6.0 -- animated mahjong tiles in the style of Lines. No dependencies.
  *
  *   <script src="lines-tiles.js"></script>
  *   <lines-tile set="flair" tile="5p"></lines-tile>                    one tile
@@ -33,7 +33,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.5.0";
+  var VERSION = "1.6.0";
   var KANJI = ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u4e03", "\u516b", "\u4e5d"];
   var HON = ["\u6771", "\u5357", "\u897f", "\u5317", "\u767d", "\u767c", "\u4e2d"];
   var MAN = "\u842c";
@@ -75,10 +75,10 @@
     7: [[30, 13, 18, "R", 0]].concat([16, 30, 44].reduce(function (a, x) {
       return a.concat([[x, 40, 18, "G", 0], [x, 66, 18, "B", 0]]);
     }, [])),
-    // 8 sou as on the real tile: straight outer sticks; the inner pair leans into a peak above and a V
-    // below, so together they make a diamond; all one colour
-    8: [[11, 22, 24, "G", 0], [22.5, 22, 24, "G", 20], [37.5, 22, 24, "G", -20], [49, 22, 24, "G", 0],
-        [11, 58, 24, "G", 0], [22.5, 58, 24, "G", -20], [37.5, 58, 24, "G", 20], [49, 58, 24, "G", 0]],
+    // 8 sou as on the classic tile: straight outer sticks; between them the inner pair leans right out to
+    // the outer sticks, peaking at the top centre above (/\) and meeting at the bottom centre below (\/)
+    8: [[11, 22, 24, "G", 0], [22.3, 21, 25, "G", 37.6], [37.7, 21, 25, "G", -37.6], [49, 22, 24, "G", 0],
+        [11, 58, 24, "G", 0], [22.3, 59, 25, "G", -37.6], [37.7, 59, 25, "G", 37.6], [49, 58, 24, "G", 0]],
     9: [14, 40, 66].reduce(function (a, y) {
       return a.concat([[15, y, 20, "G", 0], [30, y, 20, "R", 0], [45, y, 20, "B", 0]]);
     }, [])
@@ -130,9 +130,10 @@
     cap: "M 30.54 28.55 A 7.6 7.6 0 0 1 45.48 28.68 C 41 25.8 35 25.8 30.54 28.55 Z",
     bib: "M 44 33.5 C 43.5 37 41 39.5 38 39.5 C 39.5 37.5 41.5 35 42.5 33 Z",
     beak: "M 45 29.5 L 50.5 31.2 L 45 33 Z",
-    legs: "M 30 59.5 L 29 64.8 M 35 59.5 L 35 64.8 M 26.5 64.8 L 31 64.8 M 33 64.8 L 37.5 64.8"
+    legs: "M 30 59.5 L 29 64.4 M 35 59.5 L 35 64.4",
+    feet: "M 26.3 64.8 L 31.4 64.8 M 32.8 64.8 L 37.9 64.8"
   };
-  // p: colours for tail, body, wing, streak, head, cap, cheek, bib, beak, eye, glint, legs (leave any out);
+  // p: colours for tail, body, wing, streak, head, cap, cheek, bib, beak, eye, glint, legs, feet (leave any out);
   // o.line + o.lw: an outline round the big shapes; o.glow: a soft halo behind them
   function sparrow(p, o) {
     o = o || {};
@@ -152,6 +153,7 @@
     s += C(40.2, 29.2, 1.35, { fill: p.eye });
     if (p.glint) s += C(40.6, 28.8, 0.42, { fill: p.glint });
     if (p.legs) s += P(SPARROW.legs, { stroke: p.legs, sw: 1.1, lc: "round" });
+    if (p.feet || p.legs) s += P(SPARROW.feet, { stroke: p.feet || p.legs, sw: 1.4, lc: "round" });
     return s;
   }
   function skew(x, y, deg) { return "translate(" + x + " " + y + ") skewX(" + deg + ") translate(" + (-x) + " " + (-y) + ")"; }
@@ -178,7 +180,7 @@
     p: function (t, c) {
       if (t.n === 1) {
         var col = t.red ? c.red : c.ink, dx = n2(Math.sqrt(21.5 * 21.5 - 12 * 12));
-        return P("M " + n2(30 - dx) + " 52 A 21.5 21.5 0 0 0 " + n2(30 + dx) + " 52", { stroke: "#4a4e55", sw: 2.4, lc: "round" }) +
+        return P("M " + n2(30 - dx) + " 52 A 21.5 21.5 0 0 0 " + n2(30 + dx) + " 52", { stroke: "#686d75", sw: 2.4, lc: "round" }) +
           C(30, 40, 16.5, { fill: col }) + R(23, 33, 14, 14, { fill: c.face });
       }
       return PIN[t.n].map(function (p) {
@@ -189,8 +191,8 @@
     s: function (t, c) {
       if (t.n === 1) {                  // a white sparrow on a stretch of road, hopping now and then
         return R(8, 64.8, 44, 5.4, { fill: c.ink }) + P("M 11 67.5 H 49", { stroke: c.face, sw: 0.8, op: 0.6 }) +
-          G(sparrow({ tail: "#b9b9b9", body: c.ink, wing: "#b9b9b9", streak: c.face, head: c.ink, cap: "#8c8c8c",
-            bib: c.face, beak: c.face, eye: c.face, legs: c.ink }), { cls: "lt-hop" });
+          G(sparrow({ tail: "#5bc874", body: c.ink, wing: "#5bc874", streak: "#2a6b3a", head: c.ink, cap: "#8c8c8c",
+            bib: c.face, beak: c.face, eye: c.face, legs: c.ink, feet: c.red }), { cls: "lt-hop" });
       }
       return SOU[t.n].map(function (b) {
         var col = roleColour(c, b[3], t.red), x = b[0], y = b[1], h = b[2];
@@ -245,8 +247,8 @@
       if (t.n === 1) {                  // the sparrow drawn in ink, grey and tan pencil on the cap and wing; it boils
         var ink = "#16181b";
         return G(P("M 9 65.6 C 20 64 34 67 52 64.8", { stroke: ink, sw: 1.3, lc: "round" }) +
-          sparrow({ tail: "#ffffff", body: "#ffffff", wing: "#ead6b8", streak: ink, head: "#ffffff", cap: "#8c8c8c",
-            bib: ink, beak: ink, eye: ink, legs: ink }, { line: ink, lw: 1.2 }), { cls: "lt-boil" });
+          sparrow({ tail: "#bfe3c8", body: "#ffffff", wing: "#bfe3c8", streak: ink, head: "#ffffff", cap: "#8c8c8c",
+            bib: ink, beak: ink, eye: ink, legs: ink, feet: c.red }, { line: ink, lw: 1.2 }), { cls: "lt-boil" });
       }
       return SOU[t.n].map(function (b, i) {
         var col = roleColour(c, b[3], t.red), x = b[0], y = b[1], h = b[2];
@@ -374,10 +376,11 @@
     },
     s: function (t, c) {
       if (t.n === 1) {                  // a house sparrow on a twig, hopping now and then
-        return P("M 8 66 C 20 64.6 36 66.4 53 65", { stroke: "#6e4c35", sw: 2.4, lc: "round" }) +
+        return P("M 8 66 C 20 64.6 36 66.4 53 65", { stroke: "#9a7050", sw: 2.4, lc: "round" }) +
           G(P(leafD(46, 65.5, 7, 34, -40), { fill: c.leaf }), { cls: "lt-flutter", st: "transform-origin:0% 100%" }) +
-          G(sparrow({ tail: "#7a5434", body: "#c4a37a", wing: "#8b5e36", streak: "#4d321c", head: "#b08a62", cap: "#7b7570",
-            cheek: "#efe6d4", bib: "#2e2724", beak: "#2e2724", eye: "#15110f", glint: "#ffffff", legs: "#a77d5c" }), { cls: "lt-hop" });
+          G(sparrow({ tail: "#5f9a45", body: "#c4a37a", wing: "#6aab4c", streak: "#2f5a24", head: "#b08a62", cap: "#8a847e",
+            cheek: "#efe6d4", bib: "#2e2724", beak: "#2e2724", eye: "#15110f", glint: "#ffffff", legs: "#c49a76",
+            feet: c.red }), { cls: "lt-hop" });
       }
       return SOU[t.n].map(function (b, i) {
         var col = t.red ? c.stem.red : c.stem[b[3]], x = b[0], y = b[1], h = b[2], top = y - h / 2;
@@ -456,8 +459,8 @@
       if (t.n === 1) {                  // the sparrow as a neon outline over a soft halo, hopping now and then
         return P("M 9 65.2 H 51", { stroke: c.roles.B, sw: 4.6, op: 0.16, lc: "round" }) +
           P("M 9 65.2 H 51", { stroke: c.roles.B, sw: 1.8, lc: "round" }) +
-          G(sparrow({ tail: c.face, body: c.face, wing: c.face, streak: c.roles.R, head: c.face, cap: c.roles.R,
-            bib: c.roles.R, beak: "#efc84a", eye: c.accent, legs: c.accent }, { line: c.accent, lw: 1.6, glow: c.accent }), { cls: "lt-hop" });
+          G(sparrow({ tail: "#1f5a37", body: c.face, wing: "#1f5a37", streak: "#46e07f", head: c.face, cap: c.roles.R,
+            bib: c.roles.R, beak: "#efc84a", eye: c.accent, legs: c.accent, feet: c.red }, { line: c.accent, lw: 1.6, glow: c.accent }), { cls: "lt-hop" });
       }
       return SOU[t.n].map(function (b) {
         var col = roleColour(c, b[3], t.red), x = b[0], y = b[1], h = b[2];
@@ -495,7 +498,7 @@
   S.block = {
     fonts: ["dela"],
     inset: 0.88,
-    c: { face: "#f4f4f4", edge: "#c4c4c4", border: "#b4b4b4", bw: 1, backFace: "#e4e4e4", side: "#bdbdbd", depth: 1.5,
+    c: { face: "#f4f4f4", edge: "#c4c4c4", border: "#b4b4b4", bw: 1, backFace: "#cfd3d6", side: "#bdbdbd", depth: 1.5,
          roles: { B: "#2b2e33", G: "#3a86d8", R: "#e0524a" }, red: "#e0524a" },
     p: function (t, c) {
       var d = c.depth, sides = "", tops = "";
@@ -515,8 +518,8 @@
         return G(R(10 + d, 64.8 + d, 40, 4.6, { rx: 1, fill: c.side }), { cls: "lt-breath" }) +
           R(10, 64.8, 40, 4.6, { rx: 1, fill: "#3f9a55" }) +
           G(G(G(sparrow(shadow), { tf: "translate(" + d + " " + d + ")" }), { cls: "lt-breath" }) +
-            sparrow({ tail: "#8a5a33", body: "#c9a77c", wing: "#8a5a33", streak: "#5a3a20", head: "#b08a62", cap: "#6f6a66",
-              cheek: "#f4f4f4", bib: c.roles.B, beak: c.roles.B, eye: c.roles.B, legs: "#8a5a33" }), { cls: "lt-bob" });
+            sparrow({ tail: "#3f9a55", body: "#a87e4e", wing: "#4fae63", streak: "#2a6b3a", head: "#9c7448", cap: "#6f6a66",
+              cheek: "#f4f4f4", bib: c.roles.B, beak: c.roles.B, eye: c.roles.B, legs: "#8a5a33", feet: c.red }), { cls: "lt-bob" });
       }
       var sides = "", tops = "";
       SOU[t.n].forEach(function (b) {
@@ -550,7 +553,7 @@
       for (var i = 0; i < 3; i++) {
         for (var j = 0; j < 4; j++) {
           var x = 9 + i * 15, y = 9 + j * 16;
-          sides += R(x + d, y + d, 9, 9, { fill: c.side });
+          sides += R(x + d, y + d, 9, 9, { fill: "#8f9499" });   // darker than the face shadows: the back is grey
           tops += R(x, y, 9, 9, { fill: "#f4f4f4" });
         }
       }
