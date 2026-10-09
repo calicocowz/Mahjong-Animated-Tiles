@@ -14,6 +14,24 @@ Every tile is live SVG drawn by one small script (`lines-tiles.js`, about 42 KB,
 
 Open `index.html` for the live demo: every tile, a playable hand, and a box where you type a hand and see it drawn. Open `showcase.html` for an auto-playing, full-screen reel of the five sets.
 
+## Install on the Wind-Up Bird review site (one line)
+
+`lines-skin.js` re-skins a page that already draws mahjong tiles, without changing any of its code. Add this line to each page that shows tiles (the review page, and the live-play page if it has one), anywhere in the HTML:
+
+```html
+<script src="https://cdn.jsdelivr.net/gh/calicocowz/Mahjong-Animated-Tiles@v1.4.0/lines-skin.js" data-set="flair"></script>
+```
+
+That's the whole install. How it works and what to know:
+
+- It finds every `<span class="tile">` with its `.tile-artwork` box (the markup `shared/tiles.js` builds) and draws a Lines tile in that box, at whatever size the layout gives it. Tiles drawn later, while a replay moves, are skinned as they appear.
+- The site keeps everything else: its layout, face-down tiles and hidden hands (with the winning tile shown), riichi turns, deal-in and mistake highlights, and its tile names for screen readers.
+- It reads the face the site already chose, so `0m`, `5mr` and the `E S W N P F C` honour letters all come out right.
+- Change the set with `data-set` (`road`, `sheet`, `garden`, `flair` or `block`), and the motion with `data-motion` (`on`, `hover` or `off`).
+- To let visitors choose, call `LinesSkin.use("garden")` from a setting; `LinesSkin.use(null)` puts the original tiles back.
+- To host the file yourself instead of using the CDN, copy `lines-skin.js` next to the page's other scripts and point `src` at it. If the site sends a Content-Security-Policy, it must allow the script's address, plus `fonts.googleapis.com` and `fonts.gstatic.com` for the lettering.
+- The page currently credits its tile artist ("Tiles by mochamoko"). Whether to change that credit while the skin is on is up to the site's owner.
+
 ## Show it from your own computer
 
 Double-click `show-tiles.bat` (Windows), or run:
@@ -57,10 +75,10 @@ Changing an attribute later redraws the element.
 **2. Load it from a CDN, straight from this GitHub repo.** [jsDelivr](https://www.jsdelivr.com/) serves files from public GitHub repos, no upload needed:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/calicocowz/Mahjong-Animated-Tiles@v1.3.0/lines-tiles.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/calicocowz/Mahjong-Animated-Tiles@v1.4.0/lines-tiles.js"></script>
 ```
 
-`@v1.3.0` pins this version (the git tag `v1.3.0`), so a later change to the repo can never change a site that uses it. To move to a newer version, change the number.
+`@v1.4.0` pins this version (the git tag `v1.4.0`), so a later change to the repo can never change a site that uses it. To move to a newer version, change the number.
 
 **3. Use the demo as a page.** In the repo's *Settings → Pages*, choose *Deploy from a branch*, then `main` and `/ (root)`. The pages then go live at `https://calicocowz.github.io/Mahjong-Animated-Tiles/` (the demo) and `https://calicocowz.github.io/Mahjong-Animated-Tiles/showcase.html` (the showcase).
 
@@ -99,7 +117,7 @@ LinesTiles.parseHand("12m 3p")   // ["1m", "2m", null, "3p"]   (null = gap)
 LinesTiles.label("0p")           // "red 5 pin"
 LinesTiles.sets                  // ["road", "sheet", "garden", "flair", "block"]
 LinesTiles.tiles                 // every tile code, in order
-LinesTiles.version               // "1.3.0"
+LinesTiles.version               // "1.4.0"
 ```
 
 `svg`, `hand` and `parseHand` throw an `Error` on an unknown set, tile or notation.

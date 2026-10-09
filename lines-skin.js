@@ -756,3 +756,135 @@
     }
   }
 })(typeof window !== "undefined" ? window : this);
+
+/*! lines-skin.js -- put the Lines tiles on a page that already draws mahjong tiles. */
+/*
+ * One line, and no other change to the page:
+ *
+ *   <script src="lines-skin.js" data-set="flair"></script>
+ *
+ * It finds every tile built as
+ *   <span class="tile" data-tile="5m"><span class="tile-artwork" style="background-image:url(.../5m.png)"></span></span>
+ * (the markup of the Wind-Up Bird review site) and draws a Lines tile inside each artwork box, at whatever
+ * size the page gives it. Tiles added later are drawn as they appear. The page keeps its own layout,
+ * face-down tiles, hidden hands, riichi turns and highlights.
+ *
+ *   data-set:    road | sheet | garden | flair | block    (default flair)
+ *   data-motion: on | hover | off                          (default on)
+ *
+ * From script:  LinesSkin.use("garden")       switch every tile to another set
+ *               LinesSkin.use("flair", "off") set and motion together
+ *               LinesSkin.use(null)            put the page's own tiles back
+ */
+(function () {
+  "use strict";
+  var L = window.LinesTiles;
+  if (!L || window.LinesSkin || typeof document === "undefined") return;
+  var script = document.currentScript;
+  var HONOUR = { E: "1z", S: "2z", W: "3z", N: "4z", P: "5z", F: "6z", C: "7z" };
+  var HIDDEN = ".tile-back .tile-artwork > .lt-skin",
+    HIDDEN_HAND = ".hand-hidden .tile:not(.winning-tsumo):not(.winning-ron) .tile-artwork > .lt-skin";
+  var CSS = [
+    "html.lt-skinned .tile{background-color:transparent!important;box-shadow:none!important}",
+    ".lt-skin,.lt-skin>span,.lt-skin svg{position:absolute;inset:0;display:block;width:100%!important;height:100%!important}",
+    ".lt-skin>.lt-back{display:none}",
+    // face-down tiles: the same rules the page uses for its own back picture
+    HIDDEN + ">.lt-face," + HIDDEN_HAND + ">.lt-face{display:none}",
+    HIDDEN + ">.lt-back," + HIDDEN_HAND + ">.lt-back{display:block}",
+    // the page sets pointer-events:none on the artwork box, so "move on hover" listens to the tile itself
+    ".tile:hover .lt-skin .lt-motion-hover,.tile:hover .lt-skin .lt-motion-hover *{animation-play-state:running!important}"
+  ].join("\n");
+
+  function pickSet(s) { return L.sets.indexOf(s) >= 0 ? s : (L.sets.indexOf("flair") >= 0 ? "flair" : L.sets[0]); }
+  function pickMotion(m) { return m === "hover" || m === "off" ? m : "on"; }
+  var state = {
+    set: pickSet(script && script.getAttribute("data-set")),
+    motion: pickMotion(script && script.getAttribute("data-motion"))
+  };
+
+  // Which tile is this? The page's own choice of picture (".../0m.png") is the most faithful answer;
+  // failing that, read data-tile the way the page does (0m or 5mr = red five, E S W N P F C = honours).
+  function faceOf(tile, art) {
+    var m = /([0-9][mpsz])\.(?:png|webp|jpe?g|gif|svg)/i.exec(art.style.backgroundImage || "");
+    if (m && L.parse(m[1])) return m[1].toLowerCase();
+    var code = tile.getAttribute("data-tile") || "";
+    if (/^5[mps]r$/.test(code)) code = "0" + code.charAt(1);
+    code = HONOUR[code] || code;
+    return L.parse(code) && code !== "back" ? code : "";
+  }
+
+  // Our own writes also reach the observer (its callback runs later), so every write here is one the
+  // observer ignores by value: background "none" is ours, and boxes inside .lt-skin are ours.
+  function paint(art) {
+    var tile = art.closest(".tile");
+    if (!tile) return;
+    var bg = art.style.backgroundImage;
+    if (!art.hasAttribute("data-lt-face") || (bg && bg !== "none")) {
+      // first sight, or the page has set a new picture since: remember it (to restore, and to read the face)
+      art.setAttribute("data-lt-face", faceOf(tile, art));
+      art.setAttribute("data-lt-bg", bg && bg !== "none" ? bg : "");
+    }
+    var old = art.querySelector(":scope > .lt-skin");
+    if (old) old.remove();
+    if (!state.set) {                  // skin off: the page's own picture again
+      art.style.removeProperty("background-image");
+      if (art.getAttribute("data-lt-bg")) art.style.backgroundImage = art.getAttribute("data-lt-bg");
+      return;
+    }
+    art.style.setProperty("background-image", "none", "important");   // beats the page's !important rules
+    var face = art.getAttribute("data-lt-face"), opts = { size: 60, motion: state.motion };
+    var box = document.createElement("span");
+    box.className = "lt-skin";
+    box.innerHTML = (face ? '<span class="lt-face">' + L.svg(state.set, face, opts) + "</span>" : "") +
+      '<span class="lt-back">' + L.svg(state.set, "back", opts) + "</span>";
+    art.appendChild(box);
+  }
+  function paintAll(root) {
+    if (root.nodeType !== 1) return;
+    if (root.classList.contains("tile-artwork")) paint(root);
+    root.querySelectorAll(".tile-artwork").forEach(paint);
+  }
+
+  var observer = new MutationObserver(function (records) {
+    records.forEach(function (r) {
+      if (r.type === "attributes") {
+        // the page gave an existing tile a new picture: follow it. Only while the skin is on: with it
+        // off, the picture is ours to leave alone (restoring it would otherwise wake us again, forever).
+        var art = r.target, bg = art.style.backgroundImage;
+        if (state.set && art.classList.contains("tile-artwork") && bg && bg !== "none") paint(art);
+        return;
+      }
+      r.addedNodes.forEach(function (n) {
+        if (n.nodeType === 1 && !n.closest(".lt-skin")) paintAll(n);
+      });
+    });
+  });
+
+  function start() {
+    if (!document.getElementById("lines-skin-css")) {
+      var st = document.createElement("style");
+      st.id = "lines-skin-css";
+      st.textContent = CSS;
+      document.head.appendChild(st);
+    }
+    document.documentElement.classList.toggle("lt-skinned", !!state.set);
+    paintAll(document.body);
+    observer.observe(document.body, { childList: true, subtree: true, attributes: true, attributeFilter: ["style"] });
+  }
+
+  window.LinesSkin = {
+    get set() { return state.set; },
+    get motion() { return state.motion; },
+    sets: L.sets.slice(),
+    use: function (set, motion) {
+      state.set = set === null || set === "off" ? null : pickSet(set);
+      if (motion !== undefined) state.motion = pickMotion(motion);
+      document.documentElement.classList.toggle("lt-skinned", !!state.set);
+      paintAll(document.body);
+      return state.set;
+    }
+  };
+
+  if (document.body) start();
+  else document.addEventListener("DOMContentLoaded", start);
+})();
