@@ -47,6 +47,9 @@
   .grid { display: flex; flex-direction: column; gap: 6px; }
   .grid .row { display: flex; gap: 5px; align-items: flex-end; }
 
+  /* tiles are built the way the Wind-Up Bird site builds them; lines-skin.js draws into them */
+  .tile { position: relative; display: inline-block; width: var(--w); height: var(--h); }
+  .tile-artwork { position: absolute; inset: 0; }
   .t { display: inline-block; line-height: 0; animation: drop .55s cubic-bezier(.2, .9, .25, 1.15) var(--d) both; }
   .t.drawn { animation-name: slide; }
   .t.g { animation-name: rise; animation-duration: .45s; animation-timing-function: ease-out; }
@@ -87,11 +90,12 @@
     <div class="seg" id="sets" aria-label="Tile sets"></div>
     <button type="button" class="ctl" id="play">Pause</button>
     <button type="button" class="ctl" id="full">Full screen</button>
-    <span class="hint">&larr; &rarr; change set &middot; Space pause &middot; F full screen</span>
+    <span class="hint">Drawn by lines-skin.js &middot; &larr; &rarr; change set &middot; Space pause &middot; F full screen</span>
   </footer>
 </div>
 
-<script src="lines-tiles.js"></script>
+<!-- the same one line as on the Wind-Up Bird site: the skin draws every tile below -->
+<script src="lines-skin.js" data-set="road"></script>
 <script>
 (function () {
   "use strict";
@@ -136,9 +140,18 @@
     return { hand: hand, grid: Math.max(14, grid) };
   }
 
+  // a tile as the Wind-Up Bird site builds one: the skin finds it and draws the Lines tile inside
+  function tileSpan(code, size) {
+    return '<span class="tile' + (code === "back" ? " tile-back" : "") + '" data-tile="' + code + '" style="--w:' + size +
+      "px;--h:" + Math.round(size * 86 / 60) + 'px"><span class="tile-artwork" aria-hidden="true"></span></span>';
+  }
+
   function render(i, animate) {
     var sc = SCENES[i];
     current = i;
+    $("hand").innerHTML = "";                     // empty first, so switching the set redraws nothing old
+    $("grid").innerHTML = "";
+    LinesSkin.use(sc.set);
     stage.classList.toggle("settled", !animate);
     $("name").textContent = sc.name.toUpperCase();
     $("line").textContent = sc.line;
@@ -153,7 +166,7 @@
       if (c === null) { html += '<span class="gap"></span>'; return; }
       var drawn = k === 13;
       html += '<span class="t' + (drawn ? " drawn" : "") + '" style="--d:' + (drawn ? 1600 : 250 + k * 75) + 'ms">' +
-        L.svg(sc.set, c, { size: sz.hand }) + "</span>";
+        tileSpan(c, sz.hand) + "</span>";
       k++;
     });
     $("hand").innerHTML = html;
@@ -164,7 +177,7 @@
     var n = 0;
     $("grid").innerHTML = ROWS.map(function (row) {
       return '<div class="row">' + row.map(function (c) {
-        return '<span class="t g" style="--d:' + (2500 + (n++) * 22) + 'ms">' + L.svg(sc.set, c, { size: sz.grid }) + "</span>";
+        return '<span class="t g" style="--d:' + (2500 + (n++) * 22) + 'ms">' + tileSpan(c, sz.grid) + "</span>";
       }).join("") + "</div>";
     }).join("");
 
