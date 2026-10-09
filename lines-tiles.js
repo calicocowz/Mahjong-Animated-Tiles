@@ -1,4 +1,4 @@
-/*! lines-tiles.js 1.7.0 -- animated mahjong tiles in the style of Lines. No dependencies.
+/*! lines-tiles.js 1.7.1 -- animated mahjong tiles in the style of Lines. No dependencies.
  *
  *   <script src="lines-tiles.js"></script>
  *   <lines-tile set="flair" tile="5p"></lines-tile>                    one tile
@@ -33,7 +33,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.7.0";
+  var VERSION = "1.7.1";
   var KANJI = ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u4e03", "\u516b", "\u4e5d"];
   var HON = ["\u6771", "\u5357", "\u897f", "\u5317", "\u767d", "\u767c", "\u4e2d"];
   var MAN = "\u842c";
@@ -208,7 +208,7 @@
       if (t.n === 1) {                  // a white sparrow on a stretch of road, hopping now and then
         return R(8, 64.8, 44, 5.4, { fill: c.ink }) + P("M 11 67.5 H 49", { stroke: c.face, sw: 0.8, op: 0.6 }) +
           G(sparrow({ tail: "#5bc874", body: c.ink, wing: "#5bc874", streak: "#2a6b3a", head: c.ink, cap: "#8c8c8c",
-            bib: c.face, beak: c.face, eye: c.face, legs: c.ink, feet: c.red }), { cls: "lt-hop" });
+            bib: c.face, beak: "#efc84a", eye: c.face, legs: c.ink, feet: c.red }), { cls: "lt-hop" });   // a dark beak vanished into the tile
       }
       return SOU[t.n].map(function (b) {
         var col = roleColour(c, b[3], t.red), x = b[0], y = b[1], h = b[2];
@@ -271,7 +271,8 @@
         var inner = R(x - 3.6, y - h / 2, 7.2, h, { rx: 1.6, stroke: col, sw: 1.4 });
         for (var k = -1; k <= 1; k++) inner += R(x - 2.2, y + k * h / 4 - 0.4, 4.4, 0.8, { fill: col });
         inner = G(inner, { cls: "lt-boil", st: delay(i, 0.66) });
-        return placeStick(inner, b);
+        // Sheet's outlined sticks are the widest: its 8 sou is widened less (x1.1), so the tips meet cleanly
+        return placeStick(inner, t.n === 8 ? b.slice(0, 5).concat(1.1) : b);
       }).join("");
     },
     m: function (t, c) {
@@ -395,7 +396,7 @@
         return P("M 8 66 C 20 64.6 36 66.4 53 65", { stroke: "#9a7050", sw: 2.4, lc: "round" }) +
           G(P(leafD(46, 65.5, 7, 34, -40), { fill: c.leaf }), { cls: "lt-flutter", st: "transform-origin:0% 100%" }) +
           G(sparrow({ tail: "#5f9a45", body: "#c4a37a", wing: "#6aab4c", streak: "#2f5a24", head: "#b08a62", cap: "#8a847e",
-            cheek: "#efe6d4", bib: "#2e2724", beak: "#2e2724", eye: "#15110f", glint: "#ffffff", legs: "#c49a76",
+            cheek: "#efe6d4", bib: "#2e2724", beak: "#e0b25a", eye: "#15110f", glint: "#ffffff", legs: "#c49a76",
             feet: c.red }), { cls: "lt-hop" });
       }
       return SOU[t.n].map(function (b, i) {
