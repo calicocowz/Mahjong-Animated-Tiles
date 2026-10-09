@@ -1,4 +1,4 @@
-/*! lines-tiles.js 1.7.1 -- animated mahjong tiles in the style of Lines. No dependencies.
+/*! lines-tiles.js 1.7.2 -- animated mahjong tiles in the style of Lines. No dependencies.
  *
  *   <script src="lines-tiles.js"></script>
  *   <lines-tile set="flair" tile="5p"></lines-tile>                    one tile
@@ -33,7 +33,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.7.1";
+  var VERSION = "1.7.2";
   var KANJI = ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u4e03", "\u516b", "\u4e5d"];
   var HON = ["\u6771", "\u5357", "\u897f", "\u5317", "\u767d", "\u767c", "\u4e2d"];
   var MAN = "\u842c";
@@ -483,7 +483,7 @@
         var col = roleColour(c, b[3], t.red), x = b[0], y = b[1], h = b[2];
         var lean = t.n === 8 ? b[4] : b[4] || 8;   // a slight forward lean; 8 sou keeps its real shape
         return placeStick(R(x - 4.2, y - h / 2, 8.4, h, { rx: 4.2, fill: col, op: 0.16 }) +
-          R(x - 2.3, y - h / 2, 4.6, h, { rx: 2.3, fill: col }), b, lean);
+          R(x - 2.3, y - h / 2, 4.6, h, { rx: 2.3, fill: col }), t.n === 8 ? b.slice(0, 5).concat(1.1) : b, lean);   // 8 sou: slimmer x1.1
       }).join("");
     },
     m: function (t, c) {
