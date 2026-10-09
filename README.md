@@ -12,6 +12,8 @@ In every set the 1 sou is a sparrow with a green wing and tail and red feet, as 
 
 ![The same hand in all five sets](preview.png)
 
+Every tile of every set, side by side and still: [all-tiles.png](all-tiles.png) (all 38 tiles of each set, 190 in all).
+
 Every tile is live SVG drawn by one small script (`lines-tiles.js`, about 42 KB, 13 KB gzipped). No images, no dependencies, no build step. The motion is plain CSS.
 
 Open `index.html` for the live demo: every tile, a playable hand, and a box where you type a hand and see it drawn. Open `showcase.html` for an auto-playing, full-screen reel of the five sets.
