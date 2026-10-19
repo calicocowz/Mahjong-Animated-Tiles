@@ -1,4 +1,4 @@
-/*! lines-tiles.js 1.7.3 -- animated mahjong tiles in the style of Lines. No dependencies.
+/*! lines-tiles.js 1.8.0 -- animated mahjong tiles in the style of Lines. No dependencies.
  *
  *   <script src="lines-tiles.js"></script>
  *   <lines-tile set="flair" tile="5p"></lines-tile>                    one tile
@@ -33,7 +33,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.7.3";
+  var VERSION = "1.8.0";
   var KANJI = ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u4e03", "\u516b", "\u4e5d"];
   var HON = ["\u6771", "\u5357", "\u897f", "\u5317", "\u767d", "\u767c", "\u4e2d"];
   var MAN = "\u842c";
@@ -228,11 +228,6 @@
         var d = ["M 55 10 V 70", "M 10 75 H 50", "M 5 10 V 70", "M 10 5 H 50"][n - 1];
         return P(d, { stroke: c.ink, sw: 2.6, op: 0.85 }) + T(30, 40, HON[n - 1], { font: FONT.dela, size: 29, fill: c.ink });
       }
-      if (n === 5) {                    // the original bold frame in pure white, undoing the inset so it keeps its old size
-        var k = (1 / S.road.inset).toFixed(4);
-        return G(R(16, 26, 28, 28, { stroke: "#f4f4f4", sw: 5.5 }) + R(25, 35, 10, 10, { fill: "#f4f4f4", cls: "lt-pulse" }),
-          { tf: "translate(30 40) scale(" + k + ") translate(-30 -40)" });
-      }
       var col = n === 6 ? "#5bc874" : c.red;
       return T(30, 38, HON[n - 1], { font: FONT.dela, size: 29, fill: col }) + P("M 19 66 H 41", { stroke: col, sw: 1.4, op: 0.6 });
     },
@@ -280,7 +275,6 @@
         G(T(30, 61, MAN, { font: FONT.zen, size: 26, fill: c.red }), { cls: "lt-boil", st: "animation-delay:-.3s" });
     },
     z: function (t, c) {
-      if (t.n === 5) return R(13, 23, 34, 34, { rx: 2, stroke: "#ff5fd2", sw: 1.8, dash: "4 3", cls: "lt-ants" });
       var col = t.n === 6 ? "#2e9b55" : t.n === 7 ? c.red : "#16181b";
       return G(T(30, 41, HON[t.n - 1], { font: FONT.zen, size: 38, fill: col }), { cls: "lt-boil" });
     },
@@ -422,19 +416,6 @@
         R(48, 7, 2.4, 2.4, { fill: c.centre, cls: "lt-twinkle" });
     },
     z: function (t, c) {
-      if (t.n === 5) {
-        var s = "", q = 4.4, x0 = 12.4, y0 = 22.4;
-        for (var i = 0; i < 8; i++) {
-          for (var j = 0; j < 8; j++) {
-            if (i > 0 && i < 7 && j > 0 && j < 7) continue;
-            // position around the ring, clockwise from the top-left: 0..27
-            var k = j === 0 ? i : i === 7 ? 7 + j : j === 7 ? 21 - i : 28 - j;
-            s += R(x0 + i * q, y0 + j * q, q - 0.5, q - 0.5, { fill: "#f4f4f4", cls: "lt-chase",
-              st: "animation-delay:-" + n2((28 - k) / 28 * 2.2) + "s" });
-          }
-        }
-        return s;
-      }
       var col = t.n === 6 ? "#6fd07f" : t.n === 7 ? c.red : "#e8e8e8";
       return T(30, 41, HON[t.n - 1], { font: FONT.dot, size: 32, fill: col }) + R(48, 7, 2.4, 2.4, { fill: c.centre, cls: "lt-twinkle" });
     },
@@ -491,10 +472,6 @@
         T(30, 60, MAN, { font: FONT.mplus, weight: 800, size: 22, fill: c.roles.R, tf: skew(30, 60, -6) });
     },
     z: function (t, c) {
-      if (t.n === 5) {
-        return R(15, 25, 30, 30, { rx: 3, stroke: c.accent, sw: 5.6, op: 0.16 }) +
-          R(15, 25, 30, 30, { rx: 3, stroke: c.accent, sw: 2.6 });
-      }
       var col = t.n === 6 ? "#46e07f" : t.n === 7 ? c.red : c.ink, line = t.n <= 4 ? c.roles.B : col;
       return T(30, 39, HON[t.n - 1], { font: FONT.mplus, weight: 800, size: 31, fill: col, tf: skew(30, 39, -6) }) +
         P("M 14 67 H 46", { stroke: "#31353a", sw: 2, lc: "round" }) +
@@ -556,10 +533,6 @@
     },
     z: function (t, c) {
       var d = 1.2;
-      if (t.n === 5) {
-        return G(R(17 + d, 27 + d, 26, 26, { stroke: c.side, sw: 4.4 }), { cls: "lt-breath" }) +
-          R(17, 27, 26, 26, { stroke: c.roles.B, sw: 4.4 });
-      }
       var col = t.n === 6 ? "#3f9a55" : t.n === 7 ? c.red : c.roles.B;
       return G(T(30 + d, 41 + d, HON[t.n - 1], { font: FONT.dela, size: 28, fill: c.side }), { cls: "lt-breath" }) +
         T(30, 41, HON[t.n - 1], { font: FONT.dela, size: 28, fill: col });
@@ -589,8 +562,6 @@
     ".lt{display:inline-block;vertical-align:bottom;overflow:hidden}",
     ".lt-lap{animation:lt-lap 2.6s linear infinite}",
     "@keyframes lt-lap{to{stroke-dashoffset:-100}}",
-    ".lt-pulse{animation:lt-pulse 1.8s ease-in-out infinite alternate}",
-    "@keyframes lt-pulse{from{opacity:.35}to{opacity:.95}}",
     // the rim light only makes sense moving: on still tiles it would sit as a stray dash, so hide it
     ".lt-rim{stroke-linecap:round}",
     ".lt-motion-off .lt-rim{opacity:0}",
@@ -612,8 +583,6 @@
     "@keyframes lt-sway{from{transform:rotate(-2.6deg)}to{transform:rotate(2.6deg)}}",
     ".lt-flutter{transform-box:fill-box;animation:lt-flutter 2.6s ease-in-out infinite alternate}",
     "@keyframes lt-flutter{from{transform:rotate(-14deg)}to{transform:rotate(10deg)}}",
-    ".lt-chase{animation:lt-chase 2.2s linear infinite}",
-    "@keyframes lt-chase{0%,100%{opacity:.85}10%{opacity:1}30%{opacity:.85}}",
     ".lt-sheen{animation:lt-sheen 7s ease-in-out infinite}",
     "@keyframes lt-sheen{0%{transform:translateX(0)}25%,100%{transform:translateX(100px)}}",
     ".lt-breath{animation:lt-breath 3.2s ease-in-out infinite alternate}",
@@ -671,9 +640,10 @@
     var w = width(opts.size), h = w * 86 / 60, c = st.c;
     var motion = opts.motion === "off" || opts.motion === "hover" ? opts.motion : "on";
     var face = t.suit === "back" ? (c.backFace || c.face) : c.face;
-    var inner = t.suit === "back" ? st.back(c) : st[t.suit](t, c);
+    // the White dragon is a blank tile in every set, as in riichi sets
+    var inner = t.suit === "back" ? st.back(c) : t.suit === "z" && t.n === 5 ? "" : st[t.suit](t, c);
     // draw the marks a little smaller around the tile's centre, leaving a margin
-    if (st.inset) inner = G(inner, { tf: "translate(30 40) scale(" + st.inset + ") translate(-30 -40)" });
+    if (st.inset && inner) inner = G(inner, { tf: "translate(30 40) scale(" + st.inset + ") translate(-30 -40)" });
     if (st.rim && t.suit !== "back") {
       // one dim light laps the tile's rim, each tile at its own moment
       var rk = t.suit + (t.n || 0) + (t.red ? "r" : ""), rh = 0;
