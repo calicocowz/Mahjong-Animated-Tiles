@@ -8,13 +8,13 @@ Animated mahjong tiles in the style of **Lines**, in five sets:
 - **Flair** — neon on a dark tile: crisp marks over a soft, steady glow, and a slow sheen that crosses each tile now and then.
 - **Block** — the 3D view: every mark a softly extruded block on a light tile, the depth drifting as if the camera moved.
 
-In every set the 1 sou is a sparrow with a green wing and tail and red feet, as the traditional 1 sou bird is green and red, drawn in that set's style. The 8 sou has the classic layout: straight outer sticks, with the inner pair leaning right out to them, peaking at the top above and meeting at the bottom below. The White dragon is a blank tile in every set, as in riichi sets. The 2, 3, 4, 6 and 8 sou are all one green, the same green as the set's Green dragon, so a ryuuiisou (all green) hand looks all green. Each red five (`0m` `0p` `0s`) has a solid red dot in its top-left corner, so it stands out in a hand.
+In every set the 1 sou is a sparrow with a green wing and tail and red feet, as the traditional 1 sou bird is green and red, drawn in that set's style. The 8 sou has the classic layout: straight outer sticks, with the inner pair leaning right out to them, peaking at the top above and meeting at the bottom below. The White dragon is a blank tile in every set, as in riichi sets. The 2, 3, 4, 6 and 8 sou are all one green, the same green as the set's Green dragon, so a ryuuiisou (all green) hand looks all green. Each red five (`0m` `0p` `0s`) has a small red dot in its top-left corner, drawn the way that set draws its pins (a coin, an inked ring, a bead, a neon ring, an extruded coin), so it stands out in a hand.
 
 ![The same hand in all five sets](preview.png)
 
 Every tile of every set, side by side and still: [all-tiles.png](all-tiles.png) (all 38 tiles of each set, 190 in all).
 
-Every tile is live SVG drawn by one small script (`lines-tiles.js`, about 45 KB, 14 KB gzipped). No images, no dependencies, no build step. The motion is plain CSS.
+Every tile is live SVG drawn by one small script (`lines-tiles.js`, about 46 KB, 14 KB gzipped). No images, no dependencies, no build step. The motion is plain CSS.
 
 Open `index.html` for the live demo: every tile, a playable hand, and a box where you type a hand and see it drawn. Open `showcase.html` for an auto-playing, full-screen reel of the five sets.
 
@@ -23,7 +23,7 @@ Open `index.html` for the live demo: every tile, a playable hand, and a box wher
 `lines-skin.js` re-skins a page that already draws mahjong tiles, without changing any of its code. Add this line to each page that shows tiles (the review page, and the live-play page if it has one), anywhere in the HTML:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/calicocowz/Mahjong-Animated-Tiles@v1.10.0/lines-skin.js" data-set="flair"></script>
+<script src="https://cdn.jsdelivr.net/gh/calicocowz/Mahjong-Animated-Tiles@v1.11.0/lines-skin.js" data-set="flair"></script>
 ```
 
 That's the whole install. How it works and what to know:
@@ -79,10 +79,10 @@ Changing an attribute later redraws the element.
 **2. Load it from a CDN, straight from this GitHub repo.** [jsDelivr](https://www.jsdelivr.com/) serves files from public GitHub repos, no upload needed:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/calicocowz/Mahjong-Animated-Tiles@v1.10.0/lines-tiles.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/calicocowz/Mahjong-Animated-Tiles@v1.11.0/lines-tiles.js"></script>
 ```
 
-`@v1.10.0` pins this version (the git tag `v1.10.0`), so a later change to the repo can never change a site that uses it. To move to a newer version, change the number.
+`@v1.11.0` pins this version (the git tag `v1.11.0`), so a later change to the repo can never change a site that uses it. To move to a newer version, change the number.
 
 **3. Use the demo as a page.** In the repo's *Settings → Pages*, choose *Deploy from a branch*, then `main` and `/ (root)`. The pages then go live at `https://calicocowz.github.io/Mahjong-Animated-Tiles/` (the demo) and `https://calicocowz.github.io/Mahjong-Animated-Tiles/showcase.html` (the showcase).
 
@@ -121,7 +121,7 @@ LinesTiles.parseHand("12m 3p")   // ["1m", "2m", null, "3p"]   (null = gap)
 LinesTiles.label("0p")           // "red 5 pin"
 LinesTiles.sets                  // ["road", "sheet", "garden", "flair", "block"]
 LinesTiles.tiles                 // every tile code, in order
-LinesTiles.version               // "1.10.0"
+LinesTiles.version               // "1.11.0"
 ```
 
 `svg`, `hand` and `parseHand` throw an `Error` on an unknown set, tile or notation.

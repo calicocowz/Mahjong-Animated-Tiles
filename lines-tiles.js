@@ -1,4 +1,4 @@
-/*! lines-tiles.js 1.10.0 -- animated mahjong tiles in the style of Lines. No dependencies.
+/*! lines-tiles.js 1.11.0 -- animated mahjong tiles in the style of Lines. No dependencies.
  *
  *   <script src="lines-tiles.js"></script>
  *   <lines-tile set="flair" tile="5p"></lines-tile>                    one tile
@@ -33,7 +33,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.10.0";
+  var VERSION = "1.11.0";
   var KANJI = ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u4e03", "\u516b", "\u4e5d"];
   var HON = ["\u6771", "\u5357", "\u897f", "\u5317", "\u767d", "\u767c", "\u4e2d"];
   var MAN = "\u842c";
@@ -197,6 +197,10 @@
     rim: 0.4,                         // opacity of the light that laps the rim
     c: { face: "#16181b", edge: "#2b2e33", border: "#3a3d42", bw: 1, backFace: "#16181b",
          roles: { B: "#e6e6e6", G: "#5aa7f0", R: "#ef6560" }, red: "#ef6560", green: "#5bc874", ink: "#e6e6e6", shrub: "#4f9a5a" },
+    dot: function (x, y, r, c) {        // the red five's dot: a little red coin, as the pins are drawn
+      var q = n2(r * 0.92);
+      return C(x, y, r, { fill: c.red }) + R(n2(x - q / 2), n2(y - q / 2), q, q, { fill: c.face });
+    },
     p: function (t, c) {
       if (t.n === 1) {
         var col = t.red ? c.red : c.ink, dx = n2(Math.sqrt(21.5 * 21.5 - 12 * 12));
@@ -247,6 +251,9 @@
     fonts: ["zen"],
     c: { face: "#ffffff", edge: "#c9c9c9", border: "#16181b", bw: 1.4,
          roles: { B: "#16181b", G: "#2f7fd6", R: "#e0403a" }, red: "#e0403a", green: "#2e9b55" },
+    dot: function (x, y, r, c) {        // the red five's dot: an inked ring round a dot, as the pins are drawn; it boils
+      return G(C(x, y, r - 0.8, { stroke: c.red, sw: 1.6 }) + C(x, y, n2(r * 0.3), { fill: c.red }), { cls: "lt-boil" });
+    },
     p: function (t, c) {
       if (t.n === 1) {
         return G(C(30, 40, 18, { stroke: "#16181b", sw: 2.4 }) + C(30, 40, 11, { stroke: "#2f7fd6", sw: 1.8 }) +
@@ -382,6 +389,9 @@
            R: ["#e45a3e", "#a83a27", "#f6b1a2", "#9ccc3e"], red: ["#e04848", "#a52f2f", "#f4a9a9", "#9ccc3e"]
          },
          leaf: "#7cbf45" },
+    dot: function (x, y, r, c) {        // the red five's dot: a flat red bead with a gold heart, like the flowers
+      return C(x, y, r, { fill: c.red }) + C(x, y, n2(r * 0.32), { fill: GOLD });
+    },
     p: function (t, c) {
       var bed = c.bed[t.n], draw = BLOOMS[bed[0]];
       if (t.n === 1) return G(draw(30, 40, 19, bed[1].B), { cls: "lt-spin" });   // the sunflower turns slowly
@@ -443,9 +453,12 @@
   S.flair = {
     fonts: ["mplus"],
     sheen: 0.07,                      // opacity of the light band that crosses the tile
-    glow: 0.16,                       // opacity of the soft glow behind the red five's dot
     c: { face: "#16181b", edge: "#2a2d33", border: "#31353a", bw: 1,
          roles: { B: "#6cb2ff", G: "#4fe0b6", R: "#ff86d9" }, red: "#ff5c5c", green: "#46e07f", ink: "#f4f4f4", accent: "#8fdcff" },
+    dot: function (x, y, r, c) {        // the red five's dot: a small neon ring over its soft glow, as the pins are drawn
+      var rr = r - 1.3;
+      return C(x, y, rr, { stroke: c.red, sw: 5.2, op: 0.16 }) + C(x, y, rr, { stroke: c.red, sw: 2.2 }) + C(x, y, n2(r * 0.3), { fill: c.red });
+    },
     p: function (t, c) {
       function ring(x, y, r, col, sw) {
         return C(x, y, r, { stroke: col, sw: sw + 3, op: 0.16 }) + C(x, y, r, { stroke: col, sw: sw });
@@ -500,6 +513,11 @@
     inset: 0.88,
     c: { face: "#f4f4f4", edge: "#c4c4c4", border: "#b4b4b4", bw: 1, backFace: "#cfd3d6", side: "#bdbdbd", depth: 1.5,
          roles: { B: "#2b2e33", G: "#3a86d8", R: "#e0524a" }, red: "#e0524a", green: "#3f9a55" },
+    dot: function (x, y, r, c) {        // the red five's dot: an extruded red coin, as the pins are drawn
+      var q = n2(r * 0.62);
+      return G(C(x + c.depth, y + c.depth, r, { fill: c.side }), { cls: "lt-breath" }) + C(x, y, r, { fill: c.red }) +
+        R(n2(x - q / 2), n2(y - q / 2), q, q, { fill: "#f4f4f4" });
+    },
     p: function (t, c) {
       var d = c.depth, sides = "", tops = "";
       var list = t.n === 1 ? [[30, 40, 17, t.red ? "R" : "B"]] : PIN[t.n];
@@ -657,14 +675,9 @@
       inner += P(roundRectD(3.5, 3.5, 53, 73, 4.5), { stroke: c.ink, sw: 1, op: st.rim, pl: 100, dash: "5 95", cls: "lt-lap lt-rim",
         st: "animation-duration:10s;animation-delay:-" + n2((rh % 100) / 10) + "s" });
     }
-    if (t.red) {
-      // a red five carries a solid red dot in its top-left corner (free in every set), so it
-      // stands out in a hand; Flair gives it the set's soft glow, Block its extruded shadow
-      var dotX = 7, dotY = 7, dotR = 4;
-      if (st.glow) inner += C(dotX, dotY, dotR + 1.6, { fill: c.red, op: st.glow });
-      if (c.depth) inner += G(C(dotX + c.depth, dotY + c.depth, dotR, { fill: c.side }), { cls: "lt-breath" });
-      inner += C(dotX, dotY, dotR, { fill: c.red });
-    }
+    // a red five carries a red dot in its top-left corner (free in every set), so it stands out in a
+    // hand; each set draws it the way it draws its own pins, so it reads as part of the tile
+    if (t.red) inner += st.dot ? st.dot(7, 7, 4, c) : C(7, 7, 4, { fill: c.red });
     if (st.sheen) {
       // a light band crosses the tile every 7 s; each tile starts at its own moment so a
       // row of tiles never flashes at once
