@@ -1,4 +1,4 @@
-/*! lines-tiles.js 1.9.0 -- animated mahjong tiles in the style of Lines. No dependencies.
+/*! lines-tiles.js 1.10.0 -- animated mahjong tiles in the style of Lines. No dependencies.
  *
  *   <script src="lines-tiles.js"></script>
  *   <lines-tile set="flair" tile="5p"></lines-tile>                    one tile
@@ -33,7 +33,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.9.0";
+  var VERSION = "1.10.0";
   var KANJI = ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u4e03", "\u516b", "\u4e5d"];
   var HON = ["\u6771", "\u5357", "\u897f", "\u5317", "\u767d", "\u767c", "\u4e2d"];
   var MAN = "\u842c";
@@ -443,6 +443,7 @@
   S.flair = {
     fonts: ["mplus"],
     sheen: 0.07,                      // opacity of the light band that crosses the tile
+    glow: 0.16,                       // opacity of the soft glow behind the red five's dot
     c: { face: "#16181b", edge: "#2a2d33", border: "#31353a", bw: 1,
          roles: { B: "#6cb2ff", G: "#4fe0b6", R: "#ff86d9" }, red: "#ff5c5c", green: "#46e07f", ink: "#f4f4f4", accent: "#8fdcff" },
     p: function (t, c) {
@@ -655,6 +656,14 @@
       for (var j = 0; j < rk.length; j++) rh = (rh * 31 + rk.charCodeAt(j)) % 7001;
       inner += P(roundRectD(3.5, 3.5, 53, 73, 4.5), { stroke: c.ink, sw: 1, op: st.rim, pl: 100, dash: "5 95", cls: "lt-lap lt-rim",
         st: "animation-duration:10s;animation-delay:-" + n2((rh % 100) / 10) + "s" });
+    }
+    if (t.red) {
+      // a red five carries a solid red dot in its top-left corner (free in every set), so it
+      // stands out in a hand; Flair gives it the set's soft glow, Block its extruded shadow
+      var dotX = 7, dotY = 7, dotR = 4;
+      if (st.glow) inner += C(dotX, dotY, dotR + 1.6, { fill: c.red, op: st.glow });
+      if (c.depth) inner += G(C(dotX + c.depth, dotY + c.depth, dotR, { fill: c.side }), { cls: "lt-breath" });
+      inner += C(dotX, dotY, dotR, { fill: c.red });
     }
     if (st.sheen) {
       // a light band crosses the tile every 7 s; each tile starts at its own moment so a
