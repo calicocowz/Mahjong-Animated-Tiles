@@ -1,4 +1,4 @@
-/*! lines-tiles.js 1.8.0 -- animated mahjong tiles in the style of Lines. No dependencies.
+/*! lines-tiles.js 1.9.0 -- animated mahjong tiles in the style of Lines. No dependencies.
  *
  *   <script src="lines-tiles.js"></script>
  *   <lines-tile set="flair" tile="5p"></lines-tile>                    one tile
@@ -33,7 +33,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.8.0";
+  var VERSION = "1.9.0";
   var KANJI = ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u4e03", "\u516b", "\u4e5d"];
   var HON = ["\u6771", "\u5357", "\u897f", "\u5317", "\u767d", "\u767c", "\u4e2d"];
   var MAN = "\u842c";
@@ -122,6 +122,10 @@
   }
   function delay(i, period) { return "animation-delay:-" + n2((i * 0.37) % (period || 2)) + "s"; }
   function roleColour(c, role, red) { return red ? c.red : c.roles[role]; }
+  // The 2, 3, 4, 6 and 8 sou are all green, in the set's own green (its Green dragon's), so that with
+  // the Green dragon they make ryuuiisou ("all green"); the other sou keep their traditional colours.
+  var ALL_GREEN = { 2: true, 3: true, 4: true, 6: true, 8: true };
+  function stickColour(c, t, role) { return t.red ? c.red : ALL_GREEN[t.n] ? c.green : c.roles[role]; }
   function E(cx, cy, rx, ry, o) { o = o || {}; return "<ellipse" + at(merge({ cx: cx, cy: cy, rx: rx, ry: ry }, common(o))) + "/>"; }
   // A stick from its lower end (x1, y1) to its upper end (x2, y2), as [x, y, length, role, turn, width].
   function stickAt(x1, y1, x2, y2, role, width) {
@@ -192,7 +196,7 @@
     inset: 0.88,                      // the marks are drawn at 88% around the centre: room to breathe
     rim: 0.4,                         // opacity of the light that laps the rim
     c: { face: "#16181b", edge: "#2b2e33", border: "#3a3d42", bw: 1, backFace: "#16181b",
-         roles: { B: "#e6e6e6", G: "#5aa7f0", R: "#ef6560" }, red: "#ef6560", ink: "#e6e6e6", shrub: "#4f9a5a" },
+         roles: { B: "#e6e6e6", G: "#5aa7f0", R: "#ef6560" }, red: "#ef6560", green: "#5bc874", ink: "#e6e6e6", shrub: "#4f9a5a" },
     p: function (t, c) {
       if (t.n === 1) {
         var col = t.red ? c.red : c.ink, dx = n2(Math.sqrt(21.5 * 21.5 - 12 * 12));
@@ -211,7 +215,7 @@
             bib: c.face, beak: "#efc84a", eye: c.face, legs: c.ink, feet: c.red }), { cls: "lt-hop" });   // a dark beak vanished into the tile
       }
       return SOU[t.n].map(function (b) {
-        var col = roleColour(c, b[3], t.red), x = b[0], y = b[1], h = b[2];
+        var col = stickColour(c, t, b[3]), x = b[0], y = b[1], h = b[2];
         var bar = R(x - 3, y - h / 2, 6, h, { fill: col }) +
           P("M " + x + " " + n2(y - h / 2 + 2.5) + " V " + n2(y + h / 2 - 2.5), { stroke: c.face, sw: 0.8, op: 0.6 });
         return placeStick(bar, b);
@@ -228,7 +232,7 @@
         var d = ["M 55 10 V 70", "M 10 75 H 50", "M 5 10 V 70", "M 10 5 H 50"][n - 1];
         return P(d, { stroke: c.ink, sw: 2.6, op: 0.85 }) + T(30, 40, HON[n - 1], { font: FONT.dela, size: 29, fill: c.ink });
       }
-      var col = n === 6 ? "#5bc874" : c.red;
+      var col = n === 6 ? c.green : c.red;
       return T(30, 38, HON[n - 1], { font: FONT.dela, size: 29, fill: col }) + P("M 19 66 H 41", { stroke: col, sw: 1.4, op: 0.6 });
     },
     back: function (c) {
@@ -242,7 +246,7 @@
   S.sheet = {
     fonts: ["zen"],
     c: { face: "#ffffff", edge: "#c9c9c9", border: "#16181b", bw: 1.4,
-         roles: { B: "#16181b", G: "#2f7fd6", R: "#e0403a" }, red: "#e0403a" },
+         roles: { B: "#16181b", G: "#2f7fd6", R: "#e0403a" }, red: "#e0403a", green: "#2e9b55" },
     p: function (t, c) {
       if (t.n === 1) {
         return G(C(30, 40, 18, { stroke: "#16181b", sw: 2.4 }) + C(30, 40, 11, { stroke: "#2f7fd6", sw: 1.8 }) +
@@ -262,7 +266,7 @@
             bib: ink, beak: ink, eye: ink, legs: ink, feet: c.red }, { line: ink, lw: 1.2 }), { cls: "lt-boil" });
       }
       return SOU[t.n].map(function (b, i) {
-        var col = roleColour(c, b[3], t.red), x = b[0], y = b[1], h = b[2];
+        var col = stickColour(c, t, b[3]), x = b[0], y = b[1], h = b[2];
         var inner = R(x - 3.6, y - h / 2, 7.2, h, { rx: 1.6, stroke: col, sw: 1.4 });
         for (var k = -1; k <= 1; k++) inner += R(x - 2.2, y + k * h / 4 - 0.4, 4.4, 0.8, { fill: col });
         inner = G(inner, { cls: "lt-boil", st: delay(i, 0.66) });
@@ -275,7 +279,7 @@
         G(T(30, 61, MAN, { font: FONT.zen, size: 26, fill: c.red }), { cls: "lt-boil", st: "animation-delay:-.3s" });
     },
     z: function (t, c) {
-      var col = t.n === 6 ? "#2e9b55" : t.n === 7 ? c.red : "#16181b";
+      var col = t.n === 6 ? c.green : t.n === 7 ? c.red : "#16181b";
       return G(T(30, 41, HON[t.n - 1], { font: FONT.zen, size: 38, fill: col }), { cls: "lt-boil" });
     },
     back: function () {
@@ -360,7 +364,7 @@
   S.garden = {
     fonts: ["dot"],
     c: { face: "#0c0c0c", edge: "#31353a", border: "#2b2e33", bw: 1, backFace: "#101a14",
-         roles: { B: "#7b84d6", G: "#4fae86", R: "#d0628f" }, red: "#e04848", centre: "#f0d27a",
+         roles: { B: "#7b84d6", G: "#4fae86", R: "#d0628f" }, red: "#e04848", green: "#6fd07f", centre: "#f0d27a",
          // pin n -> [flower, colour for each traditional place B / G / R]; flat colours, no shine
          bed: {
            1: ["sunflower", { B: "#f1b52e", G: "#f1b52e", R: "#f1b52e" }],
@@ -394,7 +398,8 @@
             feet: c.red }), { cls: "lt-hop" });
       }
       return SOU[t.n].map(function (b, i) {
-        var col = t.red ? c.stem.red : c.stem[b[3]], x = b[0], y = b[1], h = b[2], top = y - h / 2;
+        // the all-green sou (2 3 4 6 8) are all green stalks
+        var col = t.red ? c.stem.red : c.stem[ALL_GREEN[t.n] ? "G" : b[3]], x = b[0], y = b[1], h = b[2], top = y - h / 2;
         var s = R(x - 2.7, top, 5.4, h, { rx: 1.8, fill: col[0] }) +
           R(x - 1.6, top + 1.4, 1.1, h - 2.8, { rx: 0.55, fill: col[2], op: 0.15 });  // a faint light down one side
         var joints = h >= 22 ? 2 : 1;
@@ -416,7 +421,7 @@
         R(48, 7, 2.4, 2.4, { fill: c.centre, cls: "lt-twinkle" });
     },
     z: function (t, c) {
-      var col = t.n === 6 ? "#6fd07f" : t.n === 7 ? c.red : "#e8e8e8";
+      var col = t.n === 6 ? c.green : t.n === 7 ? c.red : "#e8e8e8";
       return T(30, 41, HON[t.n - 1], { font: FONT.dot, size: 32, fill: col }) + R(48, 7, 2.4, 2.4, { fill: c.centre, cls: "lt-twinkle" });
     },
     back: function () {               // bamboo leaves on dark green
@@ -439,7 +444,7 @@
     fonts: ["mplus"],
     sheen: 0.07,                      // opacity of the light band that crosses the tile
     c: { face: "#16181b", edge: "#2a2d33", border: "#31353a", bw: 1,
-         roles: { B: "#6cb2ff", G: "#4fe0b6", R: "#ff86d9" }, red: "#ff5c5c", ink: "#f4f4f4", accent: "#8fdcff" },
+         roles: { B: "#6cb2ff", G: "#4fe0b6", R: "#ff86d9" }, red: "#ff5c5c", green: "#46e07f", ink: "#f4f4f4", accent: "#8fdcff" },
     p: function (t, c) {
       function ring(x, y, r, col, sw) {
         return C(x, y, r, { stroke: col, sw: sw + 3, op: 0.16 }) + C(x, y, r, { stroke: col, sw: sw });
@@ -461,7 +466,7 @@
             bib: c.roles.R, beak: "#efc84a", eye: c.accent, legs: c.accent, feet: c.red }, { line: c.accent, lw: 1.6, glow: c.accent }), { cls: "lt-hop" });
       }
       return SOU[t.n].map(function (b) {
-        var col = roleColour(c, b[3], t.red), x = b[0], y = b[1], h = b[2];
+        var col = stickColour(c, t, b[3]), x = b[0], y = b[1], h = b[2];
         var lean = t.n === 8 ? b[4] : b[4] || 8;   // a slight forward lean; 8 sou keeps its real shape
         return placeStick(R(x - 4.2, y - h / 2, 8.4, h, { rx: 4.2, fill: col, op: 0.16 }) +
           R(x - 2.3, y - h / 2, 4.6, h, { rx: 2.3, fill: col }), t.n === 8 ? b.slice(0, 5).concat(1.1) : b, lean);   // 8 sou: slimmer x1.1
@@ -472,7 +477,7 @@
         T(30, 60, MAN, { font: FONT.mplus, weight: 800, size: 22, fill: c.roles.R, tf: skew(30, 60, -6) });
     },
     z: function (t, c) {
-      var col = t.n === 6 ? "#46e07f" : t.n === 7 ? c.red : c.ink, line = t.n <= 4 ? c.roles.B : col;
+      var col = t.n === 6 ? c.green : t.n === 7 ? c.red : c.ink, line = t.n <= 4 ? c.roles.B : col;
       return T(30, 39, HON[t.n - 1], { font: FONT.mplus, weight: 800, size: 31, fill: col, tf: skew(30, 39, -6) }) +
         P("M 14 67 H 46", { stroke: "#31353a", sw: 2, lc: "round" }) +
         P("M 14 67 H 46", { stroke: line, sw: 2, lc: "round", pl: 100, dash: "18 82", cls: "lt-lap" });
@@ -493,7 +498,7 @@
     fonts: ["dela"],
     inset: 0.88,
     c: { face: "#f4f4f4", edge: "#c4c4c4", border: "#b4b4b4", bw: 1, backFace: "#cfd3d6", side: "#bdbdbd", depth: 1.5,
-         roles: { B: "#2b2e33", G: "#3a86d8", R: "#e0524a" }, red: "#e0524a" },
+         roles: { B: "#2b2e33", G: "#3a86d8", R: "#e0524a" }, red: "#e0524a", green: "#3f9a55" },
     p: function (t, c) {
       var d = c.depth, sides = "", tops = "";
       var list = t.n === 1 ? [[30, 40, 17, t.red ? "R" : "B"]] : PIN[t.n];
@@ -517,7 +522,7 @@
       }
       var sides = "", tops = "";
       SOU[t.n].forEach(function (b) {
-        var col = roleColour(c, b[3], t.red), x = b[0], y = b[1], h = b[2];
+        var col = stickColour(c, t, b[3]), x = b[0], y = b[1], h = b[2];
         sides += placeStick(R(x - 3.1 + d, y - h / 2 + d, 6.2, h, { rx: 1, fill: c.side }), b);
         tops += placeStick(R(x - 3.1, y - h / 2, 6.2, h, { rx: 1, fill: col }) +
           R(x - 1, y - h / 2 + 2, 2, h - 4, { rx: 1, fill: "#ffffff", op: 0.3 }), b);
@@ -533,7 +538,7 @@
     },
     z: function (t, c) {
       var d = 1.2;
-      var col = t.n === 6 ? "#3f9a55" : t.n === 7 ? c.red : c.roles.B;
+      var col = t.n === 6 ? c.green : t.n === 7 ? c.red : c.roles.B;
       return G(T(30 + d, 41 + d, HON[t.n - 1], { font: FONT.dela, size: 28, fill: c.side }), { cls: "lt-breath" }) +
         T(30, 41, HON[t.n - 1], { font: FONT.dela, size: 28, fill: col });
     },
