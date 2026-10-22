@@ -23,10 +23,17 @@ Open `index.html` for the live demo: every tile, a playable hand, and a box wher
 `lines-skin.js` re-skins a page that already draws mahjong tiles, without changing any of its code. Add this line to each page that shows tiles (the review page, and the live-play page if it has one), anywhere in the HTML:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/calicocowz/Mahjong-Animated-Tiles@v1.12.0/lines-skin.js" data-set="flair"></script>
+<script src="https://cdn.jsdelivr.net/gh/calicocowz/Mahjong-Animated-Tiles@1/lines-skin.js" data-set="flair"></script>
 ```
 
-That's the whole install. How it works and what to know:
+That's the whole install, and it keeps itself up to date:
+
+- **`@1` means "the newest 1.x release".** Every new release of the tiles reaches the site on its own; nothing on the site ever needs editing. A change that could break a site would be released as 2.0, which `@1` never picks up.
+- **When does a release show up?** The CDN is refreshed as each release is published, so new visitors get it within minutes. A browser that already has the file may keep its copy for up to 7 days; a hard refresh (Ctrl+F5) shows the new tiles at once.
+- **Already installed with a pinned version** (a line with `@v1.` and a number, like `@v1.7.3`)? Replace that part with `@1` once, and it updates itself from then on.
+- **Want to freeze it instead?** Use an exact release, e.g. `@v1.12.0`; that file never changes.
+
+How it works and what to know:
 
 - It finds every `<span class="tile">` with its `.tile-artwork` box (the markup `shared/tiles.js` builds) and draws a Lines tile in that box, at whatever size the layout gives it. Tiles drawn later, while a replay moves, are skinned as they appear.
 - The site keeps everything else: its layout, face-down tiles and hidden hands (with the winning tile shown), riichi turns, deal-in and mistake highlights, and its tile names for screen readers.
@@ -79,10 +86,10 @@ Changing an attribute later redraws the element.
 **2. Load it from a CDN, straight from this GitHub repo.** [jsDelivr](https://www.jsdelivr.com/) serves files from public GitHub repos, no upload needed:
 
 ```html
-<script src="https://cdn.jsdelivr.net/gh/calicocowz/Mahjong-Animated-Tiles@v1.12.0/lines-tiles.js"></script>
+<script src="https://cdn.jsdelivr.net/gh/calicocowz/Mahjong-Animated-Tiles@1/lines-tiles.js"></script>
 ```
 
-`@v1.12.0` pins this version (the git tag `v1.12.0`), so a later change to the repo can never change a site that uses it. To move to a newer version, change the number.
+`@1` always serves the newest 1.x release, so updates arrive by themselves (a breaking change would be 2.0, which `@1` never loads). To freeze a version instead, use its git tag, e.g. `@v1.12.0`.
 
 **3. Use the demo as a page.** In the repo's *Settings → Pages*, choose *Deploy from a branch*, then `main` and `/ (root)`. The pages then go live at `https://calicocowz.github.io/Mahjong-Animated-Tiles/` (the demo) and `https://calicocowz.github.io/Mahjong-Animated-Tiles/showcase.html` (the showcase).
 
