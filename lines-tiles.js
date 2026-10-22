@@ -1,4 +1,4 @@
-/*! lines-tiles.js 1.11.0 -- animated mahjong tiles in the style of Lines. No dependencies.
+/*! lines-tiles.js 1.12.0 -- animated mahjong tiles in the style of Lines. No dependencies.
  *
  *   <script src="lines-tiles.js"></script>
  *   <lines-tile set="flair" tile="5p"></lines-tile>                    one tile
@@ -33,7 +33,7 @@
 (function (root) {
   "use strict";
 
-  var VERSION = "1.11.0";
+  var VERSION = "1.12.0";
   var KANJI = ["\u4e00", "\u4e8c", "\u4e09", "\u56db", "\u4e94", "\u516d", "\u4e03", "\u516b", "\u4e5d"];
   var HON = ["\u6771", "\u5357", "\u897f", "\u5317", "\u767d", "\u767c", "\u4e2d"];
   var MAN = "\u842c";
@@ -123,9 +123,13 @@
   function delay(i, period) { return "animation-delay:-" + n2((i * 0.37) % (period || 2)) + "s"; }
   function roleColour(c, role, red) { return red ? c.red : c.roles[role]; }
   // The 2, 3, 4, 6 and 8 sou are all green, in the set's own green (its Green dragon's), so that with
-  // the Green dragon they make ryuuiisou ("all green"); the other sou keep their traditional colours.
+  // the Green dragon they make ryuuiisou ("all green"). The other sou are green and red too, as on real
+  // tiles: their green sticks take the set's green, the sticks of the second colour place take a softer
+  // second green (green2, no louder than the colour it replaced), and the red ones stay red.
   var ALL_GREEN = { 2: true, 3: true, 4: true, 6: true, 8: true };
-  function stickColour(c, t, role) { return t.red ? c.red : ALL_GREEN[t.n] ? c.green : c.roles[role]; }
+  function stickColour(c, t, role) {
+    return t.red ? c.red : ALL_GREEN[t.n] || role === "G" ? c.green : role === "B" ? c.green2 : c.roles[role];
+  }
   function E(cx, cy, rx, ry, o) { o = o || {}; return "<ellipse" + at(merge({ cx: cx, cy: cy, rx: rx, ry: ry }, common(o))) + "/>"; }
   // A stick from its lower end (x1, y1) to its upper end (x2, y2), as [x, y, length, role, turn, width].
   function stickAt(x1, y1, x2, y2, role, width) {
@@ -196,7 +200,7 @@
     inset: 0.88,                      // the marks are drawn at 88% around the centre: room to breathe
     rim: 0.4,                         // opacity of the light that laps the rim
     c: { face: "#16181b", edge: "#2b2e33", border: "#3a3d42", bw: 1, backFace: "#16181b",
-         roles: { B: "#e6e6e6", G: "#5aa7f0", R: "#ef6560" }, red: "#ef6560", green: "#5bc874", ink: "#e6e6e6", shrub: "#4f9a5a" },
+         roles: { B: "#e6e6e6", G: "#5aa7f0", R: "#ef6560" }, red: "#ef6560", green: "#5bc874", green2: "#a9d4b2", ink: "#e6e6e6", shrub: "#4f9a5a" },
     dot: function (x, y, r, c) {        // the red five's dot: a little red coin, as the pins are drawn
       var q = n2(r * 0.92);
       return C(x, y, r, { fill: c.red }) + R(n2(x - q / 2), n2(y - q / 2), q, q, { fill: c.face });
@@ -250,7 +254,7 @@
   S.sheet = {
     fonts: ["zen"],
     c: { face: "#ffffff", edge: "#c9c9c9", border: "#16181b", bw: 1.4,
-         roles: { B: "#16181b", G: "#2f7fd6", R: "#e0403a" }, red: "#e0403a", green: "#2e9b55" },
+         roles: { B: "#16181b", G: "#2f7fd6", R: "#e0403a" }, red: "#e0403a", green: "#2e9b55", green2: "#1d5434" },
     dot: function (x, y, r, c) {        // the red five's dot: an inked ring round a dot, as the pins are drawn; it boils
       return G(C(x, y, r - 0.8, { stroke: c.red, sw: 1.6 }) + C(x, y, n2(r * 0.3), { fill: c.red }), { cls: "lt-boil" });
     },
@@ -385,7 +389,7 @@
            9: ["aster", { B: "#988be6", G: "#f1eee3", R: "#e06079" }]
          },
          stem: {                        // bamboo: [stalk, joint, light side, leaf]
-           G: ["#46ad4f", "#2c7a33", "#a4dca6", "#9ccc3e"], B: ["#2f8fd6", "#1f5f96", "#a3cdf0", "#55c08a"],
+           G: ["#46ad4f", "#2c7a33", "#a4dca6", "#9ccc3e"], B: ["#3a8f67", "#25603f", "#9fd6bb", "#9ccc3e"],   // jade: the softer second green
            R: ["#e45a3e", "#a83a27", "#f6b1a2", "#9ccc3e"], red: ["#e04848", "#a52f2f", "#f4a9a9", "#9ccc3e"]
          },
          leaf: "#7cbf45" },
@@ -454,7 +458,7 @@
     fonts: ["mplus"],
     sheen: 0.07,                      // opacity of the light band that crosses the tile
     c: { face: "#16181b", edge: "#2a2d33", border: "#31353a", bw: 1,
-         roles: { B: "#6cb2ff", G: "#4fe0b6", R: "#ff86d9" }, red: "#ff5c5c", green: "#46e07f", ink: "#f4f4f4", accent: "#8fdcff" },
+         roles: { B: "#6cb2ff", G: "#4fe0b6", R: "#ff86d9" }, red: "#ff5c5c", green: "#46e07f", green2: "#7cc79a", ink: "#f4f4f4", accent: "#8fdcff" },
     dot: function (x, y, r, c) {        // the red five's dot: a small neon ring over its soft glow, as the pins are drawn
       var rr = r - 1.3;
       return C(x, y, rr, { stroke: c.red, sw: 5.2, op: 0.16 }) + C(x, y, rr, { stroke: c.red, sw: 2.2 }) + C(x, y, n2(r * 0.3), { fill: c.red });
@@ -512,7 +516,7 @@
     fonts: ["dela"],
     inset: 0.88,
     c: { face: "#f4f4f4", edge: "#c4c4c4", border: "#b4b4b4", bw: 1, backFace: "#cfd3d6", side: "#bdbdbd", depth: 1.5,
-         roles: { B: "#2b2e33", G: "#3a86d8", R: "#e0524a" }, red: "#e0524a", green: "#3f9a55" },
+         roles: { B: "#2b2e33", G: "#3a86d8", R: "#e0524a" }, red: "#e0524a", green: "#3f9a55", green2: "#24563a" },
     dot: function (x, y, r, c) {        // the red five's dot: an extruded red coin, as the pins are drawn
       var q = n2(r * 0.62);
       return G(C(x + c.depth, y + c.depth, r, { fill: c.side }), { cls: "lt-breath" }) + C(x, y, r, { fill: c.red }) +
